@@ -164,6 +164,24 @@ def display_scan_errors(errors):
         print(f"[ERROR] {file_path}")
 
 
+# --------------------------------------------------
+# Initialize a new baseline
+# --------------------------------------------------
+
+def initialize():
+
+    print("Creating baseline...")
+    print()
+
+    file_hashes, scan_errors = scan_directory(MONITORED_FOLDER)
+
+    save_baseline(file_hashes, BASELINE_PATH)
+
+    print()
+    print(f"Baseline created for {len(file_hashes)} files.")
+
+    display_scan_errors(scan_errors)
+
 
 if len(sys.argv) < 2:
     print("Usage: python fic.py [init|check]")
