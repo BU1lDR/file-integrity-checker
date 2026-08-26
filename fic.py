@@ -124,10 +124,17 @@ command = sys.argv[1]
 if command == "init":
     print("Creating baseline...")
 
-    file_hashes = directory_scanner(folder)
+    file_hashes, scan_errors = directory_scanner(folder)
 
     save_baseline(file_hashes, baseline_path)
 
+    if scan_errors:
+        print()
+        print("Files that were not able to be scanned:")
+
+        for file_path in scan_error:
+            print(f"[ERROR] {file_path}")
+            
     print("Baseline created.")
 
 
