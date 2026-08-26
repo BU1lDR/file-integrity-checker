@@ -1,2 +1,3 @@
 Hi, this is my first project.
 Building  a file integrity checker using python.
+adding another line to observe the change in hash of the file.
