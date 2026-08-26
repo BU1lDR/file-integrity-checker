@@ -47,7 +47,7 @@ def load_baseline(baseline_path):
 
 
 def compare_files(baseline, current):
-    for file_path, current_hash in current.i():
+    for file_path, current_hash in current.items():
 
         if file_path in baseline:
 
