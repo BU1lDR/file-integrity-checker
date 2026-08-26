@@ -229,15 +229,12 @@ def main():
     command = sys.argv[1].lower()
 
     if command == "init":
-
         initialize()
 
     elif command == "check":
-
         check_integrity()
 
     else:
-
         print(f"[ERROR] Unknown command: {command}")
         print()
         print("Usage:")
