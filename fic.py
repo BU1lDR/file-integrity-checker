@@ -40,9 +40,16 @@ def save_baseline(file_hashes, baseline_path):
         json.dump(file_hashes, file, indent = 4)
 
 
+def load_baseline(baseline_path):
+    with open(baseline_path, "r") as file:
+        return json.load(file)
+
+
 folder = Path("test_data")
 
 baseline = directory_scanner(folder)
+
+
 
 save_baseline(
     baseline,
