@@ -124,7 +124,9 @@ elif command == "check":
 
     current = directory_scanner(folder)
 
-    compare_files(baseline, current)
+    results = compare_files(baseline, current)
+
+    display_results(results)
 
 
 else:
