@@ -10,8 +10,12 @@ def calculate_hash(file_path):
 
     return hasher.hexdigest()
 
+
 folder = Path("test_data")
 
 for i in folder.iterdir():
     if i.is_file():
+        file_hash = calculate_hash(i)
+
         print("File:", i)
+        print("Hash:", file_hash)
