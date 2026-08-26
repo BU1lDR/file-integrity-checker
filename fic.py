@@ -25,3 +25,6 @@ def directory_scanner(folder):
             print()
 
     print(f"{file_count} files scanned")
+
+folder = Path("test_data")
+directory_scanner(folder)
