@@ -12,16 +12,17 @@ def calculate_hash(file_path):
 
 
 def directory_scanner(folder):
-    file_count = 0 # file counter initilization
+    file_count = 0 # File counter initilization
     for i in folder.rglob("*"):
         if i.is_file():
 
-            file_count += 1 # file counter increment
+            file_count += 1 # File counter increment
 
             file_hash = calculate_hash(i)
 
             print(f"[FILE] {i}")
             print(f"       SHA-256: {file_hash}")
+            print(f"       Size: {i.stat().st_size} bytes") # File metadata(size)
             print()
 
     print(f"{file_count} files scanned")
