@@ -1,4 +1,5 @@
 import hashlib
+import json
 from pathlib import Path
 
 def calculate_hash(file_path):
@@ -33,4 +34,4 @@ def directory_scanner(folder):
     return file_hashes
 
 folder = Path("test_data")
-directory_scanner(folder)
+baseline = directory_scanner(folder)
