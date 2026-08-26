@@ -1,5 +1,6 @@
 import hashlib
 import json
+import sys
 from pathlib import Path
 
 def calculate_hash(file_path):
@@ -51,25 +52,50 @@ def compare_files(baseline, current):
         if file_path in baseline:
 
             if baseline[file_path] == current_hash:
-                print("UNCHANGED:", file_path)
+                print(f"[UNCHANGED] {file_path}")
             else:
-                print("MODIFIED:", file_path)
+                print(f"[MODIFIED]  {file_path}")
     
         else:
-            print("NEW:", file_path)
+            print(f"[NEW]      {file_path}")
 
     for file_path in baseline:
 
         if file_path not in current:
-            print("DELETED", file_path)
+            print(f"DELETED   {file_path}")
 
 
 folder = Path("test_data")
+baseline_path = Path("baseline/baseline.json")
 
-baseline = directory_scanner(folder)
+
+if len(sys.argv) < 2:
+    print("Usage: python fic.py [init|check]")
+    sys.exit(1)
+
+command = sys.argv[1]
 
 
-save_baseline(
-    baseline,
-    Path("baseline/baseline.json")
-)
+if command == "init":
+    print("Creating baseline...")
+
+    file_hashes = directory_scanner(folder)
+
+    save_baseline(file_hashes, baseline_path)
+
+    print("Baseline created.")
+
+
+elif command == "check":
+    print("Checking file integrity...")
+
+    baseline = load_baseline(baseline_path)
+
+    current = directory_scanner(folder)
+
+    compare_files(baseline, current)
+
+
+else:
+    print("Unknown command.")
+    print("Usage: python fic.py [init|check]")
