@@ -12,5 +12,5 @@ def calculate_hash(file_path):
 
 folder = Path("test_data")
 
-for item in folder.iterdir():
-    print(item)
+for i in folder.iterdir():
+    print(i)
