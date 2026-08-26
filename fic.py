@@ -45,14 +45,23 @@ def load_baseline(baseline_path):
         return json.load(file)
 
 
-for file_path, current_hash in current.i():
+def compare_files(baseline, current):
+    for file_path, current_hash in current.i():
 
-    if file_path in baseline:
+        if file_path in baseline:
 
-        if baseline[file_path] == current_hash:
-            print("UNCHANGED:", file_path)
+            if baseline[file_path] == current_hash:
+                print("UNCHANGED:", file_path)
+            else:
+                print("MODIFIED:", file_path)
+    
         else:
-            print("MODIFIED:", file_path)
+            print("NEW:", file_path)
+
+    for file_path in baseline:
+
+        if file_path not in current:
+            print("DELETED", file_path)
 
 
 folder = Path("test_data")
