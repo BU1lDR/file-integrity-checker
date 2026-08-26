@@ -173,12 +173,38 @@ def initialize():
     print("Creating baseline...")
     print()
 
-    file_hashes, scan_errors = scan_directory(MONITORED_FOLDER)
+    file_hashes, scan_errors = directory_scanner(MONITORED_FOLDER)
 
     save_baseline(file_hashes, BASELINE_PATH)
 
     print()
     print(f"Baseline created for {len(file_hashes)} files.")
+
+    display_scan_errors(scan_errors)
+
+
+# --------------------------------------------------
+# Check current files against baseline
+# --------------------------------------------------
+
+def check_integrity():
+
+    print("Checking file integrity...")
+    print()
+
+    baseline = load_baseline(BASELINE_PATH)
+
+    if baseline is None:
+        print()
+        print("Create a baseline first with:")
+        print("    python fic.py init")
+        return
+
+    current, scan_errors = directory_scanner(MONITORED_FOLDER)
+
+    results = compare_files(baseline, current)
+
+    display_results(results)
 
     display_scan_errors(scan_errors)
 
