@@ -15,6 +15,7 @@ def calculate_hash(file_path):
 def directory_scanner(folder):
     file_count = 0 # File counter initilization
     file_hashes = {} # dictionary initialization
+
     for i in folder.rglob("*"):
         if i.is_file():
 
@@ -33,11 +34,14 @@ def directory_scanner(folder):
 
     return file_hashes
 
+
 def save_baseline(file_hashes, baseline_path):
     with open(baseline_path, "w") as file:
         json.dump(file_hashes, file, indent = 4)
 
+
 folder = Path("test_data")
+
 baseline = directory_scanner(folder)
 
 save_baseline(
