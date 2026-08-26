@@ -82,6 +82,21 @@ def compare_files(baseline, current):
     return results
 
 
+def display_results(results):
+    
+    for file_path in results["unchanged"]:
+        print(f"[UNCHANGED] {file_path}")
+        
+    for file_path in results["modified"]:
+        print(f"[MODIFIED]  {file_path}")
+        
+    for file_path in results["new"]:
+        print(f"[NEW]       {file_path}")
+        
+    for file_path in results["deleted"]:
+        print(f"[DELETED]   {file_path}")
+
+
 folder = Path("test_data")
 baseline_path = Path("baseline/baseline.json")
 
