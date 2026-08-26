@@ -13,10 +13,13 @@ def calculate_hash(file_path):
 
 def directory_scanner(folder):
     file_count = 0 # File counter initilization
+    file_hashes = {} # dictionary initialization
     for i in folder.rglob("*"):
         if i.is_file():
 
             file_count += 1 # File counter increment
+
+            file_hashes[str(i)] = file_hash
 
             file_hash = calculate_hash(i)
 
@@ -26,6 +29,8 @@ def directory_scanner(folder):
             print()
 
     print(f"{file_count} files scanned")
+
+    return file_hashes
 
 folder = Path("test_data")
 directory_scanner(folder)
