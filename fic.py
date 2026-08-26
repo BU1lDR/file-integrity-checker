@@ -6,6 +6,7 @@ from pathlib import Path
 
 
 def calculate_hash(file_path):
+
     hasher = hashlib.sha256()
 
     # perform operation, if the operation is a succes -> continue ; error -> handle error
@@ -23,37 +24,33 @@ def calculate_hash(file_path):
 
 
 def directory_scanner(folder):
-    file_count = 0 # File counter initilization
+
     file_hashes = {} # dictionary initialization
+    errors = []
 
     for i in folder.rglob("*"):
         if i.is_file():
-
-            file_count += 1 # File counter increment
 
             file_hash = calculate_hash(i)
 
             if file_hash is not None:
                 file_hashes[str(i)] = file_hash
+            else:
+                errors.append(str(i))
 
-            print(f"[FILE] {i}")
-            print(f"       SHA-256: {file_hash}")
-            print(f"       Size: {i.stat().st_size} bytes") # File metadata(size)
-            print()
-
-    print(f"{file_count} files scanned")
-
-    return file_hashes
+    return file_hashes, errors
 
 
 
 def save_baseline(file_hashes, baseline_path):
+
     with open(baseline_path, "w") as file:
         json.dump(file_hashes, file, indent = 4)
 
 
 
 def load_baseline(baseline_path):
+
     with open(baseline_path, "r") as file:
         return json.load(file)
 
@@ -106,7 +103,7 @@ def display_results(results):
     print()
     print("Integrity Check Summary")
     print("-----------------------")
-    
+
     print(f"Unchanged: {len(results['unchanged'])}")
     print(f"Modified:  {len(results['modified'])}")
     print(f"New:       {len(results['new'])}")
