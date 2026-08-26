@@ -106,6 +106,7 @@ def display_results(results):
     print()
     print("Integrity Check Summary")
     print("-----------------------")
+    
     print(f"Unchanged: {len(results['unchanged'])}")
     print(f"Modified:  {len(results['modified'])}")
     print(f"New:       {len(results['new'])}")
