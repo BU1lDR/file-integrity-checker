@@ -8,3 +8,6 @@ def calculate_hash(file_path):
             hasher.update(chunk)
 
     return hasher.hexdigest()
+
+file_hash = calculate_hash("test_data/hello.txt")
+print("SHA-256:", file_hash)
