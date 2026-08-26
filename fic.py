@@ -30,7 +30,8 @@ def directory_scanner(folder):
 
             file_hash = calculate_hash(i)
 
-            file_hashes[str(i)] = file_hash
+            if file_hash is not None:
+                file_hashes[str(i)] = file_hash
 
             print(f"[FILE] {i}")
             print(f"       SHA-256: {file_hash}")
@@ -53,22 +54,32 @@ def load_baseline(baseline_path):
 
 
 def compare_files(baseline, current):
+
+    results = {
+        "unchanged": [],
+        "modified": [],
+        "new": [],
+        "deleted": []
+    }
+
     for file_path, current_hash in current.items():
 
         if file_path in baseline:
 
             if baseline[file_path] == current_hash:
-                print(f"[UNCHANGED] {file_path}")
+                results["unchanged"].append(file_path)
             else:
-                print(f"[MODIFIED]  {file_path}")
+                results["modified"].append(file_path)
     
         else:
-            print(f"[NEW]      {file_path}")
+            results["new"].append(file_path)
 
     for file_path in baseline:
 
         if file_path not in current:
-            print(f"[DELETED]   {file_path}")
+            results["deleted"].append(file_path)
+
+    return results
 
 
 folder = Path("test_data")
