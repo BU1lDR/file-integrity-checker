@@ -62,7 +62,7 @@ def compare_files(baseline, current):
     for file_path in baseline:
 
         if file_path not in current:
-            print(f"DELETED   {file_path}")
+            print(f"[DELETED]   {file_path}")
 
 
 folder = Path("test_data")
