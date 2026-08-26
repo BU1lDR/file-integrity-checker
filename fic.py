@@ -3,13 +3,21 @@ import json
 import sys
 from pathlib import Path
 
+# --------------------------------------------------
+# Configuration
+# --------------------------------------------------
 
+MONITORED_FOLDER = Path("test_data")
+BASELINE_PATH = Path("baseline/baseline.json")
+
+
+# --------------------------------------------------
+# Calculate SHA-256 hash of a file
+# --------------------------------------------------
 
 def calculate_hash(file_path):
-
     hasher = hashlib.sha256()
 
-    # perform operation, if the operation is a succes -> continue ; error -> handle error
     try:
         with open(file_path, "rb") as file:
             while chunk := file.read(4096):
@@ -22,13 +30,16 @@ def calculate_hash(file_path):
     return hasher.hexdigest()
 
 
+# --------------------------------------------------
+# Scan a directory and calculate hashes
+# --------------------------------------------------
 
 def directory_scanner(folder):
-
-    file_hashes = {} # dictionary initialization
+    file_hashes = {}
     errors = []
 
     for i in folder.rglob("*"):
+
         if i.is_file():
 
             file_hash = calculate_hash(i)
@@ -41,20 +52,40 @@ def directory_scanner(folder):
     return file_hashes, errors
 
 
+# --------------------------------------------------
+# Save baseline to JSON
+# --------------------------------------------------
 
 def save_baseline(file_hashes, baseline_path):
+
+    baseline_path.parent.mkdir(parents = True, exist_ok = True)
 
     with open(baseline_path, "w") as file:
         json.dump(file_hashes, file, indent = 4)
 
 
+# --------------------------------------------------
+# Load baseline from JSON
+# --------------------------------------------------
 
 def load_baseline(baseline_path):
 
-    with open(baseline_path, "r") as file:
-        return json.load(file)
+    try:
+        with open(baseline_path, "r") as file:
+            return json.load(file)
+
+    except FileNotFoundError:
+        print("[ERROR] Baseline file not found.")
+        return None
+
+    except json.JSONDecodeError:
+        print("[ERROR] Baseline file contained invalid JSON.")
+        return None
 
 
+# --------------------------------------------------
+# Compare baseline with current scan
+# --------------------------------------------------
 
 def compare_files(baseline, current):
 
@@ -65,6 +96,7 @@ def compare_files(baseline, current):
         "deleted": []
     }
 
+    # Check current files against baseline
     for file_path, current_hash in current.items():
 
         if file_path in baseline:
@@ -77,6 +109,7 @@ def compare_files(baseline, current):
         else:
             results["new"].append(file_path)
 
+    # Check baseline files against current scan
     for file_path in baseline:
 
         if file_path not in current:
@@ -85,9 +118,14 @@ def compare_files(baseline, current):
     return results
 
 
+# --------------------------------------------------
+# Display comparison results
+# --------------------------------------------------
 
 def display_results(results):
-    
+
+    print()
+
     for file_path in results["unchanged"]:
         print(f"[UNCHANGED] {file_path}")
         
@@ -110,9 +148,6 @@ def display_results(results):
     print(f"Deleted:   {len(results['deleted'])}")
 
 
-
-folder = Path("test_data")
-baseline_path = Path("baseline/baseline.json")
 
 
 if len(sys.argv) < 2:
