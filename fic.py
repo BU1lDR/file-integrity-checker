@@ -130,12 +130,10 @@ if command == "init":
 
     if scan_errors:
         print()
-        print("Files that were not able to be scanned:")
+        print("Files that were not scanned:")
 
-        for file_path in scan_error:
+        for file_path in scan_errors:
             print(f"[ERROR] {file_path}")
-            
-    print("Baseline created.")
 
 
 elif command == "check":
@@ -143,11 +141,18 @@ elif command == "check":
 
     baseline = load_baseline(baseline_path)
 
-    current = directory_scanner(folder)
+    current, scan_errors = directory_scanner(folder)
 
     results = compare_files(baseline, current)
 
     display_results(results)
+
+    if scan_errors:
+        print()
+        print("Files that were not scanned:")
+        
+        for file_path in scan_errors:
+            print(f"[ERROR] {file_path}")
 
 
 else:
