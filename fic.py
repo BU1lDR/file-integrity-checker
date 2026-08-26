@@ -6,10 +6,16 @@ from pathlib import Path
 def calculate_hash(file_path):
     hasher = hashlib.sha256()
 
-    with open(file_path, "rb") as file:
-        while chunk := file.read(4096):
-            hasher.update(chunk)
+    # perform operation, if the operation is a succes -> continue ; error -> handle error
+    try:
+        with open(file_path, "rb") as file:
+            while chunk := file.read(4096):
+                hasher.update(chunk)
 
+    except (FileNotFoundError, PermissionError) as error:
+        print(f"[ERROR] Could not read {file_path}: {error}")
+        return None
+    
     return hasher.hexdigest()
 
 
