@@ -209,46 +209,41 @@ def check_integrity():
     display_scan_errors(scan_errors)
 
 
-if len(sys.argv) < 2:
-    print("Usage: python fic.py [init|check]")
-    sys.exit(1)
+# --------------------------------------------------
+# **************Main program**************
+# --------------------------------------------------
 
-command = sys.argv[1]
+def main():
 
-if command == "init":
-    print("Creating baseline...")
+    if len(sys.argv) < 2:
 
-    file_hashes, scan_errors = directory_scanner(folder)
-
-    save_baseline(file_hashes, baseline_path)
-
-    if scan_errors:
+        print("File Integrity Checker")
         print()
-        print("Files that were not scanned:")
+        print("Usage:")
+        print("    python fic.py init")
+        print("    python fic.py check")
 
-        for file_path in scan_errors:
-            print(f"[ERROR] {file_path}")
+        return
 
 
-elif command == "check":
-    print("Checking file integrity...")
+    command = sys.argv[1].lower()
 
-    baseline = load_baseline(baseline_path)
+    if command == "init":
 
-    current, scan_errors = directory_scanner(folder)
+        initialize()
 
-    results = compare_files(baseline, current)
+    elif command == "check":
 
-    display_results(results)
+        check_integrity()
 
-    if scan_errors:
+    else:
+
+        print(f"[ERROR] Unknown command: {command}")
         print()
-        print("Files that were not scanned:")
-        
-        for file_path in scan_errors:
-            print(f"[ERROR] {file_path}")
+        print("Usage:")
+        print("    python fic.py init")
+        print("    python fic.py check")
 
 
-else:
-    print("Unknown command.")
-    print("Usage: python fic.py [init|check]")
+if __name__ == "__main__":
+    main()
