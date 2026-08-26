@@ -1,4 +1,5 @@
 import hashlib
+from pathlib import Path
 
 def calculate_hash(file_path):
     hasher = hashlib.sha256()
@@ -9,5 +10,7 @@ def calculate_hash(file_path):
 
     return hasher.hexdigest()
 
-file_hash = calculate_hash("test_data/1.txt")
-print("SHA-256:", file_hash)
+folder = Path("test_data")
+
+for item in folder.iterdir():
+    print(item)
