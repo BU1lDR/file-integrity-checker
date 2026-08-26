@@ -147,6 +147,21 @@ def display_results(results):
     print(f"New:       {len(results['new'])}")
     print(f"Deleted:   {len(results['deleted'])}")
 
+# --------------------------------------------------
+# Display scan errors
+# --------------------------------------------------
+
+def display_scan_errors(errors):
+
+    if not errors:
+        return
+
+    print()
+    print("Files that could not be scanned")
+    print("-------------------------------")
+
+    for file_path in errors:
+        print(f"[ERROR] {file_path}")
 
 
 
