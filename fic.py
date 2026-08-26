@@ -68,11 +68,6 @@ folder = Path("test_data")
 
 baseline = directory_scanner(folder)
 
-baseline = load_baseline(
-    Path("baseline/baseline.json")
-)
-print(baseline)
-
 save_baseline(
     baseline,
     Path("baseline/baseline.json")
