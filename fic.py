@@ -39,3 +39,8 @@ def save_baseline(file_hashes, baseline_path):
 
 folder = Path("test_data")
 baseline = directory_scanner(folder)
+
+save_baseline(
+    baseline,
+    Path("baseline/baseline.json")
+)
