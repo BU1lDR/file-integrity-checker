@@ -17,5 +17,6 @@ for i in folder.rglob("*"):
     if i.is_file():
         file_hash = calculate_hash(i)
 
-        print("File:", i)
-        print("Hash:", file_hash)
+        print(f"[FILE] {i}")
+        print(f"       SHA-256: {file_hash}")
+        print()
