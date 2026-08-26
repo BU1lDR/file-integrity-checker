@@ -3,6 +3,8 @@ import json
 import sys
 from pathlib import Path
 
+
+
 def calculate_hash(file_path):
     hasher = hashlib.sha256()
 
@@ -17,6 +19,7 @@ def calculate_hash(file_path):
         return None
     
     return hasher.hexdigest()
+
 
 
 def directory_scanner(folder):
@@ -43,14 +46,17 @@ def directory_scanner(folder):
     return file_hashes
 
 
+
 def save_baseline(file_hashes, baseline_path):
     with open(baseline_path, "w") as file:
         json.dump(file_hashes, file, indent = 4)
 
 
+
 def load_baseline(baseline_path):
     with open(baseline_path, "r") as file:
         return json.load(file)
+
 
 
 def compare_files(baseline, current):
@@ -82,6 +88,7 @@ def compare_files(baseline, current):
     return results
 
 
+
 def display_results(results):
     
     for file_path in results["unchanged"]:
@@ -95,6 +102,15 @@ def display_results(results):
         
     for file_path in results["deleted"]:
         print(f"[DELETED]   {file_path}")
+
+    print()
+    print("Integrity Check Summary")
+    print("-----------------------")
+    print(f"Unchanged: {len(results['unchanged'])}")
+    print(f"Modified:  {len(results['modified'])}")
+    print(f"New:       {len(results['new'])}")
+    print(f"Deleted:   {len(results['deleted'])}")
+
 
 
 folder = Path("test_data")
