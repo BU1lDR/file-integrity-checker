@@ -9,5 +9,5 @@ def calculate_hash(file_path):
 
     return hasher.hexdigest()
 
-file_hash = calculate_hash("Projects/my_projects/file_integrity_checker/test_data/hello.txt")
+file_hash = calculate_hash("test_data/1.txt")
 print("SHA-256:", file_hash)
