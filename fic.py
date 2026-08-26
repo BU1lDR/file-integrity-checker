@@ -45,11 +45,24 @@ def load_baseline(baseline_path):
         return json.load(file)
 
 
+for file_path, current_hash in current.i():
+
+    if file_path in baseline:
+
+        if baseline[file_path] == current_hash:
+            print("UNCHANGED:", file_path)
+        else:
+            print("MODIFIED:", file_path)
+
+
 folder = Path("test_data")
 
 baseline = directory_scanner(folder)
 
-
+baseline = load_baseline(
+    Path("baseline/baseline.json")
+)
+print(baseline)
 
 save_baseline(
     baseline,
