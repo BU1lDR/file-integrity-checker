@@ -20,9 +20,9 @@ def directory_scanner(folder):
 
             file_count += 1 # File counter increment
 
-            file_hashes[str(i)] = file_hash
-
             file_hash = calculate_hash(i)
+
+            file_hashes[str(i)] = file_hash
 
             print(f"[FILE] {i}")
             print(f"       SHA-256: {file_hash}")
