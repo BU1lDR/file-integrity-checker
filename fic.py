@@ -75,7 +75,6 @@ if len(sys.argv) < 2:
 
 command = sys.argv[1]
 
-
 if command == "init":
     print("Creating baseline...")
 
