@@ -1,6 +1,0 @@
-2026-08-27 16:33:06,089 [INFO] Baseline creation started.
-2026-08-27 16:33:06,090 [INFO] Scanning directory: test_data
-2026-08-27 16:33:06,091 [INFO] Scan completed. Files succesfully hashed: 5
-2026-08-27 16:33:06,091 [INFO] Saving baseline to: baseline\baseline.json
-2026-08-27 16:33:06,091 [INFO] Baseline saved successfully: baseline\baseline.json
-2026-08-27 16:33:06,091 [INFO] Baseline created for 5 files
