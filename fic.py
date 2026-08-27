@@ -59,6 +59,12 @@ def directory_scanner(folder):
 
 def save_baseline(file_hashes, baseline_path):
 
+    baseline_data = {
+        "version": 1,
+        "algorithm": "sha256",
+        "files": file_hashes
+    }
+
     baseline_path.parent.mkdir(parents = True, exist_ok = True)
 
     with open(baseline_path, "w") as file:
@@ -73,15 +79,29 @@ def load_baseline(baseline_path):
 
     try:
         with open(baseline_path, "r") as file:
-            return json.load(file)
+            baseline_data = json.load(file)
 
     except FileNotFoundError:
         print("[ERROR] Baseline file not found.")
         return None
 
     except json.JSONDecodeError:
-        print("[ERROR] Baseline file contained invalid JSON.")
+        print("[ERROR] Baseline file contains invalid JSON.")
         return None
+
+    if baseline_data.get("version") != 1:
+        print("[ERROR] Unsupported baseline version.")
+        return None
+
+    if baseline_data.get("algorithm") != "sha256":
+        print("[ERROR] Unsupported hashing algorithm.")
+        return None
+
+    if "files" not in baseline_data:
+        print("[ERROR] Baseline is missing file data.")
+        return None
+
+    return baseline_data["files"]
 
 
 # --------------------------------------------------
