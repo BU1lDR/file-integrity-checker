@@ -4,3 +4,10 @@
 2026-08-27 16:15:22,996 [INFO] Sacing baseline to: baseline\baseline.json
 2026-08-27 16:15:22,997 [INFO] Baseline saved successfully: baseline\baseline.json
 2026-08-27 16:15:22,997 [INFO] Baseline created for 5 files
+2026-08-27 16:20:07,439 [INFO] Integrity check started.
+2026-08-27 16:20:07,440 [INFO] Loading baseline: baseline\baseline.json
+2026-08-27 16:20:07,441 [INFO] Baseline loaded successfully. Files: 5
+2026-08-27 16:20:07,441 [INFO] Scanning directory: test_data
+2026-08-27 16:20:07,443 [INFO] Scan completed. Files succesfully hashed: 5
+2026-08-27 16:20:07,448 [WARNING] New file detected: created.txt
+2026-08-27 16:20:07,449 [INFO] Integrity check completed. Unchanged=4, Modified=1, New=0, Deleted=0

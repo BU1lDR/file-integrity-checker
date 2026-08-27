@@ -196,7 +196,7 @@ def compare_files(baseline, current):
             else:
                 results["modified"].append(file_path)
 
-                logging.warning(f"New file detected: {file_path}")
+                logging.warning(f"File modified: {file_path}")
 
     
         else:
