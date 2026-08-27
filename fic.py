@@ -45,7 +45,8 @@ def directory_scanner(folder):
             file_hash = calculate_hash(i)
 
             if file_hash is not None:
-                file_hashes[str(i)] = file_hash
+                relative_path = i.relative_to(folder)
+                file_hashes[relative_path.as_posix()] = file_hash
             else:
                 errors.append(str(i))
 
