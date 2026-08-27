@@ -340,6 +340,8 @@ def check_integrity():
 
 def main():
 
+    setup_logging()
+
     if len(sys.argv) < 2:
 
         print("File Integrity Checker")
