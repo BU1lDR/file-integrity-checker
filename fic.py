@@ -91,7 +91,7 @@ def directory_scanner(folder):
 
 def save_baseline(file_hashes, baseline_path):
 
-    logging.info(f"Sacing baseline to: {baseline_path}")
+    logging.info(f"Saving baseline to: {baseline_path}")
 
     baseline_data = {
         "version": 1,
@@ -310,10 +310,7 @@ def check_integrity():
         print("Create a baseline first with:")
         print("    python fic.py init")
 
-        logging.error(
-            "Integrity check aborted because"
-            "baseline could not be loaded."
-        )
+        logging.error("Integrity check aborted because baseline could not be loaded.")
 
         return
 
