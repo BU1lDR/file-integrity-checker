@@ -1,6 +1,7 @@
 import hashlib
 import json
 import sys
+import logging
 from pathlib import Path
 
 # --------------------------------------------------
@@ -9,6 +10,25 @@ from pathlib import Path
 
 MONITORED_FOLDER = Path("test_data")
 BASELINE_PATH = Path("baseline/baseline.json")
+LOG_PATH = Path("logs/fic.log")
+
+
+# --------------------------------------------------
+# Configure LOGGING
+# --------------------------------------------------
+
+def setup_logging():
+
+    LOG_PATH.parent.mkdir(
+        parents=True,
+        exist_ok=True
+    )
+
+    logging.basicConfig(
+        filename=LOG_PATH,
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s"
+    )
 
 
 # --------------------------------------------------
@@ -25,6 +45,7 @@ def calculate_hash(file_path):
 
     except (FileNotFoundError, PermissionError) as error:
         print(f"[ERROR] Could not read {file_path}: {error}")
+        logging.error(f"Could not read {file_path}: {error}")
         return None
     
     return hasher.hexdigest()
@@ -35,6 +56,10 @@ def calculate_hash(file_path):
 # --------------------------------------------------
 
 def directory_scanner(folder):
+
+    logging.info(f"Scanning directory: {folder}")
+
+
     file_hashes = {}
     errors = []
 
@@ -52,6 +77,11 @@ def directory_scanner(folder):
             else:
                 errors.append(normalized_path)
 
+    logging.info(
+        f"Scan completed. " 
+        f"Files succesfully hashed: {len(file_hashes)}"
+    )
+
     return file_hashes, errors
 
 
@@ -60,6 +90,8 @@ def directory_scanner(folder):
 # --------------------------------------------------
 
 def save_baseline(file_hashes, baseline_path):
+
+    logging.info(f"Sacing baseline to: {baseline_path}")
 
     baseline_data = {
         "version": 1,
@@ -75,36 +107,68 @@ def save_baseline(file_hashes, baseline_path):
     with open(baseline_path, "w") as file:
         json.dump(baseline_data, file, indent = 4)
 
+    logging.info(f"Baseline saved successfully: {baseline_path}")
+
 
 # --------------------------------------------------
-# Load + validating baseline from JSON
+# Loading + validating baseline from JSON
 # --------------------------------------------------
 
 def load_baseline(baseline_path):
+
+    logging.info(f"Loading baseline: {baseline_path}")
+
 
     try:
         with open(baseline_path, "r") as file:
             baseline_data = json.load(file)
 
+
     except FileNotFoundError:
         print("[ERROR] Baseline file not found.")
+
+        logging.error(f"Baseline file not found: {baseline_path}")
         return None
+
 
     except json.JSONDecodeError:
         print("[ERROR] Baseline file contains invalid JSON.")
+
+        logging.error(f"Invalid JSON in baseline: {baseline_path}")
         return None
+
 
     if baseline_data.get("version") != 1:
         print("[ERROR] Unsupported baseline version.")
+
+        logging.error(
+            f"Unsupported baseline version: "
+            f"{baseline_data.get('version')}"
+        )
         return None
+
 
     if baseline_data.get("algorithm") != "sha256":
         print("[ERROR] Unsupported hashing algorithm.")
+
+        logging.error(
+            f"Unsupported hashing algorithm: "
+            f"{baseline_data.get('algorithm')}"
+        )
         return None
+
 
     if "files" not in baseline_data:
         print("[ERROR] Baseline is missing file data.")
+
+        logging.error("Baseline is missing file data.")
         return None
+
+
+    logging.info(
+        "Baseline loaded successfully. "
+        f"Files: {len(baseline_data['files'])}"
+    )
 
     return baseline_data["files"]
 
@@ -131,15 +195,24 @@ def compare_files(baseline, current):
                 results["unchanged"].append(file_path)
             else:
                 results["modified"].append(file_path)
+
+                logging.warning(f"New file detected: {file_path}")
+
     
         else:
             results["new"].append(file_path)
+
+            logging.warning(f"New file detected: {file_path}")
+
 
     # Check baseline files against current scan
     for file_path in baseline:
 
         if file_path not in current:
             results["deleted"].append(file_path)
+
+            logging.warning(f"File deleted: {file_path}")
+
 
     return results
 
@@ -189,12 +262,17 @@ def display_scan_errors(errors):
     for file_path in errors:
         print(f"[ERROR] {file_path}")
 
+        logging.error(f"File could not be scanned: {file_path}")
+
+
 
 # --------------------------------------------------
 # Initialize a new baseline
 # --------------------------------------------------
 
 def initialize():
+
+    logging.info("Baseline creation started.")
 
     print("Creating baseline...")
     print()
@@ -203,8 +281,13 @@ def initialize():
 
     save_baseline(file_hashes, BASELINE_PATH)
 
+
     print()
     print(f"Baseline created for {len(file_hashes)} files.")
+    logging.info(
+        f"Baseline created for "
+        f"{len(file_hashes)} files"
+    )
 
     display_scan_errors(scan_errors)
 
@@ -215,6 +298,8 @@ def initialize():
 
 def check_integrity():
 
+    logging.info("Integrity check started.")
+
     print("Checking file integrity...")
     print()
 
@@ -224,6 +309,12 @@ def check_integrity():
         print()
         print("Create a baseline first with:")
         print("    python fic.py init")
+
+        logging.error(
+            "Integrity check aborted because"
+            "baseline could not be loaded."
+        )
+
         return
 
     current, scan_errors = directory_scanner(MONITORED_FOLDER)
@@ -233,6 +324,14 @@ def check_integrity():
     display_results(results)
 
     display_scan_errors(scan_errors)
+
+    logging.info(
+        "Integrity check completed. "
+        f"Unchanged={len(results['unchanged'])}, "
+        f"Modified={len(results['modified'])}, "
+        f"New={len(results['new'])}, "
+        f"Deleted={len(results['deleted'])}"
+    )
 
 
 # --------------------------------------------------
