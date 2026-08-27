@@ -73,7 +73,7 @@ def save_baseline(file_hashes, baseline_path):
     )
 
     with open(baseline_path, "w") as file:
-        json.dump(file_hashes, file, indent = 4)
+        json.dump(baseline_data, file, indent = 4)
 
 
 # --------------------------------------------------
