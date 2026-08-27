@@ -67,14 +67,17 @@ def save_baseline(file_hashes, baseline_path):
         "files": file_hashes
     }
 
-    baseline_path.parent.mkdir(parents = True, exist_ok = True)
+    baseline_path.parent.mkdir(
+        parents = True, 
+        exist_ok = True
+    )
 
     with open(baseline_path, "w") as file:
         json.dump(file_hashes, file, indent = 4)
 
 
 # --------------------------------------------------
-# Load baseline from JSON
+# Load + validating baseline from JSON
 # --------------------------------------------------
 
 def load_baseline(baseline_path):
