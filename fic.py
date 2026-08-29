@@ -930,14 +930,16 @@ def main():
     if args.command == "init":
         return initialize(
             args.folder,
-            args.baseline
+            args.baseline,
+            args.exclude
         )
 
     #'check' integrity
     elif args.command == "check":
         return check_integrity(
             args.folder,
-            args.baseline
+            args.baseline,
+            args.exclude
         )
 
     #Show 'status'
