@@ -578,7 +578,7 @@ def display_scan_errors(errors):
 # Initialize a new baseline (INIT)
 # --------------------------------------------------
 
-def initialize(monitored_folder, baseline_path):
+def initialize(monitored_folder, baseline_path, exclusions):
 
     logging.info(
         f"Baseline creation started. "
@@ -589,7 +589,7 @@ def initialize(monitored_folder, baseline_path):
     print("Creating baseline...")
     print()
 
-    file_hashes, scan_errors = directory_scanner(monitored_folder)
+    file_hashes, scan_errors = directory_scanner(monitored_folder, exclusions)
 
     #Donot create baseline, if scan was incomplete
     if scan_errors:
@@ -634,7 +634,7 @@ def initialize(monitored_folder, baseline_path):
 # Check current files against baseline (CHECK)
 # --------------------------------------------------
 
-def check_integrity(monitored_folder, baseline_path):
+def check_integrity(monitored_folder, baseline_path, exclusions):
 
     logging.info(
         f"Integrity check started. "
@@ -664,7 +664,7 @@ def check_integrity(monitored_folder, baseline_path):
         return EXIT_ERROR
 
     #Scan current directory
-    current, scan_errors = directory_scanner(monitored_folder)
+    current, scan_errors = directory_scanner(monitored_folder, exclusions)
 
     #Compare files
     results = compare_files(baseline, current, scan_errors)
