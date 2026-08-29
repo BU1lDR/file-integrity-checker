@@ -13,6 +13,7 @@ BASELINE_PATH = Path("baseline/baseline.json")
 LOG_PATH = Path("logs/fic.log")
 
 
+
 # --------------------------------------------------
 # Configure LOGGING
 # --------------------------------------------------
@@ -29,6 +30,7 @@ def setup_logging():
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s"
     )
+
 
 
 # --------------------------------------------------
@@ -49,6 +51,7 @@ def calculate_hash(file_path):
         return None
     
     return hasher.hexdigest()
+
 
 
 # --------------------------------------------------
@@ -85,6 +88,7 @@ def directory_scanner(folder):
     return file_hashes, errors
 
 
+
 # --------------------------------------------------
 # Save baseline to JSON
 # --------------------------------------------------
@@ -108,6 +112,7 @@ def save_baseline(file_hashes, baseline_path):
         json.dump(baseline_data, file, indent = 4)
 
     logging.info(f"Baseline saved successfully: {baseline_path}")
+
 
 
 # --------------------------------------------------
@@ -173,6 +178,7 @@ def load_baseline(baseline_path):
     return baseline_data["files"]
 
 
+
 # --------------------------------------------------
 # Compare baseline with current scan
 # --------------------------------------------------
@@ -233,6 +239,7 @@ def compare_files(baseline, current, scan_errors):
     return results
 
 
+
 # --------------------------------------------------
 # Display comparison results
 # --------------------------------------------------
@@ -266,6 +273,8 @@ def display_results(results):
     print(f"Deleted:   {len(results['deleted'])}")
     print(f"Scan errors: {len(results['scan_error'])}")
 
+
+
 # --------------------------------------------------
 # Display scan errors
 # --------------------------------------------------
@@ -281,8 +290,6 @@ def display_scan_errors(errors):
 
     for file_path in errors:
         print(f"[ERROR] {file_path}")
-
-        logging.error(f"File could not be scanned: {file_path}")
 
 
 
