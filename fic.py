@@ -3,6 +3,7 @@ import json
 import sys
 import logging
 import re
+import os
 import argparse
 from pathlib import Path
 
@@ -159,7 +160,9 @@ def calculate_hash(file_path):
 
     except (FileNotFoundError, PermissionError) as error:
         print(f"[ERROR] Could not read {file_path}: {error}")
+
         logging.error(f"Could not read {file_path}: {error}")
+
         return None
     
     return hasher.hexdigest()
@@ -177,20 +180,97 @@ def directory_scanner(folder, exclusions = None):
 
     logging.info(f"Scanning directory: {folder}")
 
+    logging.info(f"Exclusions: {exclusions}")
+
 
     file_hashes = {}
     errors = []
+    symlinks_skipped = 0
 
-    for i in folder.rglob("*"):
+    for root, directories, files  in os.walk(
+        folder,
+        topdown = True,
+        followlinks  = False
+    ):
+        root_path = Path(root)
 
-        if is_excluded(i, folder, exclusions):
-            continue
+    #*HANDLING DIRECTORIES*
+        #REMOVING EXCLUDED DIRECTORIES
+        directories_to_remove = []
 
-        if i.is_file():
+        for directory in directories:
+            directory_path = (
+                root_path / directory
+            )
 
-            file_hash = calculate_hash(i)
+            #Skipping symbolic-link directories
+            if directory_path.is_symlink():
+                directories_to_remove.appnd(directory)
 
-            normalized_path = normalize_relative_path(i, folder)
+                symlinks_skipped += 1
+
+                logging.info(
+                    f"Skipping symbolic "
+                    f"directory link: "
+                    f"{directory_path}"
+                )
+
+                continue
+
+            #Skipping exclude directories
+            if is_excluded(
+                directory_path,
+                folder,
+                exclusions
+            ):
+                directories_to_remove.append(directory)
+
+                logging.info(
+                    f"Skipping excluded "
+                    f"directory: "
+                    f"{directory_path}"
+                )
+
+
+        for directory in directories_to_remove:
+
+            directory_path = (root_path / directory)
+
+            directories.remove(directory)
+
+            logging.info(
+                f"Skipping excluded "
+                f"directory: "
+                f"{root_path / directory}"
+            )
+
+        #PROCESS FILES
+        for file_name in files:
+            file_path = (root_path / file_name)
+
+            #Skipping symbolic links
+            if file_path.is_symlink():
+                symlinks_skipped += 1
+
+                logging.info(
+                    "Skipping ssymbolic link: "
+                    f"{i}"
+                )
+
+                continue
+
+            #Check exclusions
+            if is_excluded(file_path, folder, exclusions):
+                continue
+
+            #Confirm regular file
+            if not file_path.is_file():
+                continue
+
+            #Calculate hash
+            file_hash = calculate_hash(file_path)
+
+            normalized_path = normalize_relative_path(file_path, folder)
 
             if file_hash is not None:
                 file_hashes[normalized_path] = file_hash
@@ -198,11 +278,20 @@ def directory_scanner(folder, exclusions = None):
                 errors.append(normalized_path)
 
     logging.info(
-        f"Scan completed. " 
-        f"Files successfully hashed: {len(file_hashes)}"
+        f"Scan completed. "
+        f"Files successfully hashed: "
+        f"{len(file_hashes)}, "
+        f"Symlinks skipped: "
+        f"{symlinks_skipped}, "
+        f"Errors: "
+        f"{len(errors)}"
     )
 
-    return file_hashes, errors
+    return ( 
+        file_hashes,
+        errors,
+        symlinks_skipped
+    )
 
 
 
@@ -709,7 +798,7 @@ def initialize(monitored_folder, baseline_path, exclusions):
     print("Creating baseline...")
     print()
 
-    file_hashes, scan_errors = directory_scanner(monitored_folder, exclusions)
+    file_hashes, scan_errors, symlinks_skipped = directory_scanner(monitored_folder, exclusions)
 
     if not validate_exclusions(exclusions):
         return EXIT_ERROR
@@ -730,6 +819,11 @@ def initialize(monitored_folder, baseline_path, exclusions):
 
     #Create baseline
     save_baseline(file_hashes, baseline_path, exclusions) #baseline is only created when the scan is complete.
+
+    print(
+        f"Symbolic links skipped: "
+        f"{symlinks_skipped}"
+    )
 
     #Protect baseline
     if not save_baseline_hash(baseline_path):
@@ -815,7 +909,12 @@ def check_integrity(monitored_folder, baseline_path, exclusions):
         return EXIT_ERROR
 
     #Scan current directory
-    current, scan_errors = directory_scanner(monitored_folder, exclusions)
+    current, scan_errors, symlinks_skipped = directory_scanner(monitored_folder, exclusions)
+
+    print(
+        f"Symbolic links skipped: "
+        f"{symlinks_skipped}"
+    )
 
     #Compare files
     results = compare_files(baseline, current, scan_errors)
