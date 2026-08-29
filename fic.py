@@ -278,7 +278,7 @@ def validate_baseline(baseline_data):
 
             return False
 
-        if not is_valid_sha256(file_hash):
+        if not isValid_sha256(file_hash):
 
             logging.error(
                 f"Invalid SHA-256 hash for: "
