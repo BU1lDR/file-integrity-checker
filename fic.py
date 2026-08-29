@@ -327,7 +327,12 @@ def save_baseline_hash(baseline_path):
         return False
 
     try:
-        with open(BASELINE_HASH_PATH, "w") as file:
+        baseline_hash_path.parent.mkdir(
+            parents = True,
+            exist_ok = True
+        )
+        
+        with open(baseline_hash_path, "w") as file:
             file.write(baseline_hash)
 
     except OSError as error:
@@ -338,7 +343,7 @@ def save_baseline_hash(baseline_path):
     logging.info(
         f"Baseline hash saved successfully: "
         f"{baseline_hash_path}"
-        )
+    )
 
     return True
 
@@ -348,7 +353,9 @@ def save_baseline_hash(baseline_path):
 # Verifying the baseline hash
 # --------------------------------------------------
 
-def verify_baseline_hash():
+def verify_baseline_hash(baseline_path):
+
+    baseline_hash_path = (get_baseline_hash_path(baseline_path))
 
     if not BASELINE_HASH_PATH.exists():
         print("[ERROR] Baseline hash file not found.")
