@@ -15,13 +15,16 @@ BASELINE_PATH = Path("baseline/baseline.json")
 BASELINE_HASH_PATH = Path("baseline/baseline.sha256")
 LOG_PATH = Path("logs/fic.log")
 
+#---------------------------------------------------
 # Defining exit codes
-EXIT_SUCCESS = 0 # no integrity problem detected.
-EXIT_INTEGRITY_FAILURE = 1 # the checker successfully ran, but detected a file integrity problem.
-EXIT_ERROR = 2 # the checker itself couldn't complete normally.
+# --------------------------------------------------
+EXIT_SUCCESS = 0
+EXIT_INTEGRITY_FAILURE = 1
+EXIT_ERROR = 2
 # 0- PASS
 # 1- VIOLATION
 # 2- ERROR
+
 
 
 # --------------------------------------------------
@@ -126,46 +129,6 @@ def save_baseline(file_hashes, baseline_path):
 
 
 # --------------------------------------------------
-# Loading + validating baseline from JSON
-# --------------------------------------------------
-
-def load_baseline(baseline_path):
-
-    logging.info(f"Loading baseline: {baseline_path}")
-
-
-    try:
-        with open(baseline_path, "r") as file:
-            baseline_data = json.load(file)
-
-
-    except FileNotFoundError:
-        print("[ERROR] Baseline file not found.")
-
-        logging.error(f"Baseline file not found: {baseline_path}")
-        return None
-
-
-    except json.JSONDecodeError:
-        print("[ERROR] Baseline file contains invalid JSON.")
-
-        logging.error(f"Invalid JSON in baseline: {baseline_path}")
-        return None
-
-    
-    if not validate_baseline(baseline_data):
-        print("[ERROR] Baseline validation failed.")
-        return None
-
-
-    logging.info(
-        "Baseline loaded successfully. "
-        f"Files: {len(baseline_data['files'])}"
-    )
-
-    return baseline_data["files"]
-
-# --------------------------------------------------
 # Hash Validator
 # --------------------------------------------------
 
@@ -182,12 +145,14 @@ def isValid_sha256(value):
     )
 
 
+
 # --------------------------------------------------
 # Complete validator (root_obj + version + algorithm + file + file_path + hash)
 # --------------------------------------------------
 
 def validate_baseline(baseline_data):
 
+    #ROOT OBJECT VALIDATOR
     if not isinstance(baseline_data, dict):
 
         logging.error(
@@ -196,6 +161,7 @@ def validate_baseline(baseline_data):
 
         return False
 
+    #VERSION VALIDATOR
     version = baseline_data.get("version")
 
     if not isinstance(version, int) or isinstance(version, bool):
@@ -214,6 +180,7 @@ def validate_baseline(baseline_data):
 
         return False
 
+    #ALGORITHM VALIDATOR
     algorithm = baseline_data.get("algorithm")
 
     if not isinstance(algorithm, str):
@@ -232,6 +199,7 @@ def validate_baseline(baseline_data):
 
         return False
 
+    #FILE OBJECT VALIDATOR
     files = baseline_data.get("files")
 
     if not isinstance(files, dict):
@@ -242,6 +210,7 @@ def validate_baseline(baseline_data):
 
         return False
 
+    #FILE ENTRY VALIDATOR
     for file_path, file_hash in files.items():
 
         if not isinstance(file_path, str):
@@ -297,6 +266,48 @@ def validate_baseline(baseline_data):
             return False
 
     return True
+
+
+
+# --------------------------------------------------
+# Loading + validating baseline from JSON
+# --------------------------------------------------
+
+def load_baseline(baseline_path):
+
+    logging.info(f"Loading baseline: {baseline_path}")
+
+
+    try:
+        with open(baseline_path, "r") as file:
+            baseline_data = json.load(file)
+
+
+    except FileNotFoundError:
+        print("[ERROR] Baseline file not found.")
+
+        logging.error(f"Baseline file not found: {baseline_path}")
+        return None
+
+
+    except json.JSONDecodeError:
+        print("[ERROR] Baseline file contains invalid JSON.")
+
+        logging.error(f"Invalid JSON in baseline: {baseline_path}")
+        return None
+
+    
+    if not validate_baseline(baseline_data):
+        print("[ERROR] Baseline validation failed.")
+        return None
+
+
+    logging.info(
+        "Baseline loaded successfully. "
+        f"Files: {len(baseline_data['files'])}"
+    )
+
+    return baseline_data["files"]
 
 
 
