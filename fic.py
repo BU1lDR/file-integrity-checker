@@ -187,7 +187,9 @@ def compare_files(baseline, current, scan_errors):
         "scan_error": []
     }
 
+    scan_error_set = set(scan_errors)
 
+    # Record scan errors
     for file_path in scan_errors:
         results["scan_error"].append(file_path)
 
@@ -220,9 +222,9 @@ def compare_files(baseline, current, scan_errors):
 
         if file_path not in current:
 
-            if file_path in scan_errors:
+            if file_path in scan_error_set:
                 continue
-            
+
             results["deleted"].append(file_path)
 
             logging.warning(f"File deleted: {file_path}")
