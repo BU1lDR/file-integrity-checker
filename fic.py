@@ -538,6 +538,11 @@ def check_integrity():
     print("Checking file integrity...")
     print()
 
+    if not verify_baseline_hash():
+        print()
+        print("Integrity check aborted.")
+        return
+
     baseline = load_baseline(BASELINE_PATH)
 
     if baseline is None:
