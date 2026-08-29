@@ -177,14 +177,24 @@ def load_baseline(baseline_path):
 # Compare baseline with current scan
 # --------------------------------------------------
 
-def compare_files(baseline, current):
+def compare_files(baseline, current, scan_errors):
 
     results = {
         "unchanged": [],
         "modified": [],
         "new": [],
-        "deleted": []
+        "deleted": [],
+        "scan_error": []
     }
+
+
+    for file_path in scan_errors:
+        results["scan_error"].append(file_path)
+
+        logging.error(
+            f"File could not be scanned: {file_path}"
+        )
+
 
     # Check current files against baseline
     for file_path, current_hash in current.items():
@@ -209,6 +219,10 @@ def compare_files(baseline, current):
     for file_path in baseline:
 
         if file_path not in current:
+
+            if file_path in scan_errors:
+                continue
+            
             results["deleted"].append(file_path)
 
             logging.warning(f"File deleted: {file_path}")
