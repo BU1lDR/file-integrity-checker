@@ -653,7 +653,7 @@ def initialize(monitored_folder, baseline_path, exclusions):
         return EXIT_ERROR
 
     #Create baseline
-    save_baseline(file_hashes, baseline_path) #baseline is only created when the scan is complete.
+    save_baseline(file_hashes, baseline_path, exclusions) #baseline is only created when the scan is complete.
 
     #Protect baseline
     if not save_baseline_hash(baseline_path):
