@@ -53,31 +53,6 @@ def calculate_hash(file_path):
     
     return hasher.hexdigest()
 
-# --------------------------------------------------
-# Saving the baseline hash
-# --------------------------------------------------
-
-def save_baseline_hash():
-
-    baseline_hash = calculate_hash(BASELINE_PATH)
-
-    if baseline_hash is None:
-
-        logging.error("Could not calculate basleine hash.")
-        return False
-
-    try:
-        with open(BASELINE_HASH_PATH, "w") as file:
-            file.write(baseline_hash)
-
-    except OSError as error:
-
-        logging.error(f"Could not save baseline hash: {error}")
-        return False
-
-    logging.info("Baseline hash saved successfully")
-
-    return True
 
 
 # --------------------------------------------------
@@ -313,6 +288,86 @@ def validate_baseline(baseline_data):
             return False
 
     return True
+
+
+
+# --------------------------------------------------
+# Saving the baseline hash
+# --------------------------------------------------
+
+def save_baseline_hash():
+
+    baseline_hash = calculate_hash(BASELINE_PATH)
+
+    if baseline_hash is None:
+
+        logging.error("Could not calculate basleine hash.")
+        return False
+
+    try:
+        with open(BASELINE_HASH_PATH, "w") as file:
+            file.write(baseline_hash)
+
+    except OSError as error:
+
+        logging.error(f"Could not save baseline hash: {error}")
+        return False
+
+    logging.info("Baseline hash saved successfully")
+
+    return True
+
+
+
+# --------------------------------------------------
+# Verifying the baseline hash
+# --------------------------------------------------
+
+def verify_baseline_hash():
+
+    if not BASELINE_HASH_PATH.exists():
+        print("[ERROR] Baseline hash file not found.")
+
+        logging.error("Baseline hash file not found.")
+        return False
+
+    try:
+        with open(BASELINE_HASH_PATH, "r") as file:
+            expected_hash = file.read().strip()
+
+    except OSError as error:
+        print("[ERROR] Could not read baseline hash.")
+
+        logging.error(
+            f"Could not read baseline hash: {error}"
+        )
+        return False
+
+
+    if not isValid_sha256(expected_hash):
+        print("[ERROR] Baseline hash file is invalid.")
+
+        logging.error("Baseline hash file contains an invalid SHA-256 hash.")
+        return False
+
+
+    actual_hash = calculate_hash(BASELINE_PATH)
+
+    if actual_hash is None:
+        print("[ERROR] Could not calculate baseline hash.")
+        return False
+
+    if actual_hash != expected_hash:
+        print("[ALERT] Baseline has been modified!")
+
+        logging.critical("Baseline integrity verification failed.")
+        return False
+
+    logging.info("Baseline integrity verified successfully.")
+
+    return True
+
+
 
 # --------------------------------------------------
 # Compare baseline with current scan
