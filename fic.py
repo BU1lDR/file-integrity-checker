@@ -455,7 +455,10 @@ def load_baseline(baseline_path):
         f"Files: {len(baseline_data['files'])}"
     )
 
-    return baseline_data["files"]
+    return (
+        baseline_data["files"],
+        baseline_data["exclusions"]
+    )
 
 
 
