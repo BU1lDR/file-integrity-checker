@@ -11,8 +11,8 @@ from pathlib import Path
 
 MONITORED_FOLDER = Path("test_data")
 BASELINE_PATH = Path("baseline/baseline.json")
+BASELINE_HASH_PATH = Path("baseline/baseline.sha256")
 LOG_PATH = Path("logs/fic.log")
-
 
 
 # --------------------------------------------------
@@ -53,6 +53,31 @@ def calculate_hash(file_path):
     
     return hasher.hexdigest()
 
+# --------------------------------------------------
+# Saving the baseline hash
+# --------------------------------------------------
+
+def save_baseline_hash():
+
+    baseline_hash = calculate_hash(BASELINE_PATH)
+
+    if baseline_hash is None:
+
+        logging.error("Could not calculate basleine hash.")
+        return False
+
+    try:
+        with open(BASELINE_HASH_PATH, "w") as file:
+            file.write(baseline_hash)
+
+    except OSError as error:
+
+        logging.error(f"Could not save baseline hash: {error}")
+        return False
+
+    logging.info("Baseline hash saved successfully")
+
+    return True
 
 
 # --------------------------------------------------
