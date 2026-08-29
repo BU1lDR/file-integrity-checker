@@ -728,17 +728,47 @@ def create_parser():
     )
 
     #INIT
-    subparsers.add_parser(
+    init_parser = subparsers.add_parser(
         "init",
         help="Create a new baseline."
     )
 
+    init_parser.add_argument(
+        "--folder",
+        type=Path,
+        default=MONITORED_FOLDER,
+        help="Folder to monitor."
+    )
+
+    init_parser.add_argument(
+	    "--baseline",
+	    type=Path,
+	    default=BASELINE_PATH,
+	    help="Path to the baseline file."
+	)
+
+
     #CHECK
-    subparsers.add_parser(
+    check_parser = subparsers.add_parser(
         "check",
         help="Check file integrity."
     )
 
+    check_parser.add_argument(
+        "--folder",
+        type=Path,
+        default=MONITORED_FOLDER,
+        help="Folder to check."
+    )
+
+    check_parser.add_argument(
+	    "--baseline",
+	    type=Path,
+	    default=BASELINE_PATH,
+	    help="Path to the baseline file."
+	)
+
+    
     #STATUS
     subparsers.add_parser(
         "status",
