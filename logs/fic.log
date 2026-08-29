@@ -41,3 +41,10 @@
 2026-08-29 19:39:19,151 [INFO] Baseline created for 5 files.
 2026-08-29 19:39:28,343 [INFO] Integrity check started.
 2026-08-29 19:39:28,344 [ERROR] Baseline hash file contains an invalid SHA-256 hash.
+2026-08-29 19:40:45,761 [INFO] Baseline creation started.
+2026-08-29 19:40:45,761 [INFO] Scanning directory: test_data
+2026-08-29 19:40:45,762 [INFO] Scan completed. Files succesfully hashed: 5
+2026-08-29 19:40:45,762 [INFO] Saving baseline to: baseline\baseline.json
+2026-08-29 19:40:45,763 [INFO] Baseline saved successfully: baseline\baseline.json
+2026-08-29 19:40:45,765 [INFO] Baseline hash saved successfully
+2026-08-29 19:40:45,765 [INFO] Baseline created for 5 files.
