@@ -274,7 +274,7 @@ def validate_baseline(baseline_data):
 
         return False
 
-    if version != 1:
+    if version != 2:
 
         logging.error(
             f"Unsupported baseline version: {version}"
@@ -300,6 +300,52 @@ def validate_baseline(baseline_data):
         )
 
         return False
+
+    exclusions = baseline_data.get("exclusions")
+
+    if not isinstance(exclusions,list):
+        logging.error(
+            "Baseline exclusions are "
+            "not a list."
+        )
+
+        return False
+
+    for exclusion in exclusions:
+
+        if not isinstance(
+            exclusion,
+            str
+        ):
+
+            logging.error(
+                "Baseline contains a "
+                "non-string exclusion."
+            )
+
+            return False
+
+
+        if not exclusion:
+
+            logging.error(
+                "Baseline contains an "
+                "empty exclusion."
+            )
+
+            return False
+
+
+        if not validate_exclusion(
+            exclusion
+        ):
+
+            logging.error(
+                f"Invalid baseline "
+                f"exclusion: {exclusion}"
+            )
+
+            return False
 
     #FILE OBJECT VALIDATOR
     files = baseline_data.get("files")
