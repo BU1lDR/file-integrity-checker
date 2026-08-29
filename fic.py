@@ -510,6 +510,13 @@ def initialize():
 
     save_baseline(file_hashes, BASELINE_PATH) #baseline is only created when the scan is complete.
 
+    if not save_baseline_hash():
+        print("[ERROR] Baseline protection failed.")
+
+        logging.error("Baseline protection failed.")
+        return
+
+    
     print()
     print(
         f"Baseline created for "
