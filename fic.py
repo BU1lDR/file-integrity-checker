@@ -331,7 +331,7 @@ def save_baseline_hash(baseline_path):
             parents = True,
             exist_ok = True
         )
-        
+
         with open(baseline_hash_path, "w") as file:
             file.write(baseline_hash)
 
@@ -357,14 +357,14 @@ def verify_baseline_hash(baseline_path):
 
     baseline_hash_path = (get_baseline_hash_path(baseline_path))
 
-    if not BASELINE_HASH_PATH.exists():
+    if not baseline_hash_path.exists():
         print("[ERROR] Baseline hash file not found.")
 
         logging.error("Baseline hash file not found.")
         return False
 
     try:
-        with open(BASELINE_HASH_PATH, "r") as file:
+        with open(baseline_hash_path, "r") as file:
             expected_hash = file.read().strip()
 
     except OSError as error:
@@ -383,7 +383,7 @@ def verify_baseline_hash(baseline_path):
         return False
 
     #CALCULATING CURRENT HASH
-    actual_hash = calculate_hash(BASELINE_PATH)
+    actual_hash = calculate_hash(baseline_path)
 
     if actual_hash is None:
         print("[ERROR] Could not calculate baseline hash.")
