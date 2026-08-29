@@ -306,18 +306,29 @@ def initialize():
 
     file_hashes, scan_errors = directory_scanner(MONITORED_FOLDER)
 
-    save_baseline(file_hashes, BASELINE_PATH)
+    if scan_errors:
+        print()
+        print("[ERROR] Baseline was not created for because some files could not be scanned.")
+        logging.error(
+        "Baseline creation aborted because "
+        "some files could not be scanned."
+        )
 
+        display_scan_errors(scan_errors)
+
+        return
+
+    save_baseline(file_hashes, BASELINE_PATH) #baseline is only created when the scan is complete.
 
     print()
-    print(f"Baseline created for {len(file_hashes)} files.")
+    print(
+        f"Baseline created for "
+        f"{len(file_hashes)} files."
+    )
     logging.info(
         f"Baseline created for "
-        f"{len(file_hashes)} files"
+        f"{len(file_hashes)} files."
     )
-
-    display_scan_errors(scan_errors)
-
 
 # --------------------------------------------------
 # Check current files against baseline
@@ -355,6 +366,7 @@ def check_integrity():
         f"Modified={len(results['modified'])}, "
         f"New={len(results['new'])}, "
         f"Deleted={len(results['deleted'])}"
+        f"ScanErrors={len(results['scan_error'])}"
     )
 
 
