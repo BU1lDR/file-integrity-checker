@@ -457,10 +457,10 @@ def display_results(results):
     print("Integrity Check Summary")
     print("-----------------------")
 
-    print(f"Unchanged: {len(results['unchanged'])}")
-    print(f"Modified:  {len(results['modified'])}")
-    print(f"New:       {len(results['new'])}")
-    print(f"Deleted:   {len(results['deleted'])}")
+    print(f"Unchanged:   {len(results['unchanged'])}")
+    print(f"Modified:    {len(results['modified'])}")
+    print(f"New:         {len(results['new'])}")
+    print(f"Deleted:     {len(results['deleted'])}")
     print(f"Scan errors: {len(results['scan_error'])}")
 
 
