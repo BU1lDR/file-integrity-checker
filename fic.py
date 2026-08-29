@@ -108,10 +108,34 @@ def validate_exclusion(exclusion):
 
     if path.is_absolute():
         return False
-
+    
     for part in path.parts:
 
         if part == "..":
+            return False
+
+    return True
+
+
+# --------------------------------------------------
+# Validate exclusions
+# --------------------------------------------------
+
+def validate_exclusions(exclusions):
+
+    for exclusion in exclusions:
+
+        if not validate_exclusion(exclusion):
+            print(
+                f"[ERROR] Invalid "
+                f"exclusion: {exclusion}"
+            )
+
+            logging.error(
+                f"Invalid exclusion: "
+                f"{exclusion}"
+            )
+
             return False
 
     return True
