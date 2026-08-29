@@ -770,7 +770,6 @@ def check_integrity(monitored_folder, baseline_path, exclusions):
     baseline, baseline_exclusions = load_baseline(baseline_path)
 
     if not exclusions_match(baseline_exclusions,exclusions):
-
         print(
             "[ERROR] Exclusion "
             "configuration does not "
@@ -793,6 +792,7 @@ def check_integrity(monitored_folder, baseline_path, exclusions):
         )
 
         return EXIT_ERROR
+
 
     if baseline is None:
         print()
