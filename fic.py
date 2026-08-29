@@ -97,6 +97,22 @@ def is_excluded(
 
     return False
 
+# --------------------------------------------------
+# Config comparison
+# --------------------------------------------------
+
+def exclusions_match(expected,supplied):
+
+    expected_set = set(expected)
+
+    supplied_set = set(supplied)
+
+    return (
+        expected_set
+        == supplied_set
+    )
+
+
 
 # --------------------------------------------------
 # Validation helper
@@ -751,7 +767,32 @@ def check_integrity(monitored_folder, baseline_path, exclusions):
         return EXIT_ERROR
 
     #Load baseline
-    baseline = load_baseline(baseline_path)
+    baseline, baseline_exclusions = load_baseline(baseline_path)
+
+    if not exclusions_match(baseline_exclusions,exclusions):
+
+        print(
+            "[ERROR] Exclusion "
+            "configuration does not "
+            "match the baseline."
+        )
+
+        print(
+            f"Baseline exclusions: "
+            f"{baseline_exclusions}"
+        )
+
+        print(
+            f"Supplied exclusions: "
+            f"{exclusions}"
+        )
+
+        logging.error(
+            "Exclusion configuration "
+            "does not match baseline."
+        )
+
+        return EXIT_ERROR
 
     if baseline is None:
         print()
