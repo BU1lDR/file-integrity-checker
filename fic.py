@@ -3,6 +3,7 @@ import json
 import sys
 import logging
 import re
+import argparse
 from pathlib import Path
 
 # --------------------------------------------------
@@ -592,7 +593,67 @@ def check_integrity():
         return EXIT_INTEGRITY_FAILURE
 
     return EXIT_SUCCESS
+
     
+
+# --------------------------------------------------
+# Argument parser
+# --------------------------------------------------
+
+def create_parser():
+
+    parser = argparse.ArgumentParser(
+        description=(
+            "File Integrity Checker - "
+            "detect unauthorized file changes."
+        )
+    )
+
+# SUBCOMMANDS
+    subparsers = parser.add_subparsers(
+        dest="command"
+    )
+
+    subparsers.add_parser(
+        "init",
+        help="Create a new baseline."
+    )
+
+    subparsers.add_parser(
+        "check",
+        help="Check file integrity."
+    )
+
+    subparsers.add_parser(
+        "status",
+        help="Show checker status."
+    )
+
+    return parser
+
+
+
+# --------------------------------------------------
+# Show checker status
+# --------------------------------------------------
+
+def show_status():
+
+    print("File Integrity Checker status")
+    print("----------------------------")
+    print(f"Baseline file: {'present' if BASELINE_PATH.exists() else 'missing'}")
+    print(f"Baseline hash file: {'present' if BASELINE_HASH_PATH.exists() else 'missing'}")
+
+    if BASELINE_PATH.exists() and BASELINE_HASH_PATH.exists():
+        if verify_baseline_hash():
+            print("Baseline integrity: OK")
+            return EXIT_SUCCESS
+
+        print("Baseline integrity: FAILED")
+        return EXIT_INTEGRITY_FAILURE
+
+    print("Baseline integrity: unavailable")
+    return EXIT_ERROR
 
 
 # --------------------------------------------------
@@ -628,6 +689,24 @@ def main():
         print("Usage:")
         print("    python fic.py init")
         print("    python fic.py check")
+
+
+    parser = create_parser()
+
+    args = parser.parse_args()
+
+    if args.command == "init":
+        return initialize()
+
+    elif args.command == "check":
+        return check_integrity()
+
+    elif args.command == "status":
+        return show_status()
+
+    else:
+        parser.print_help()
+        return EXIT_ERROR
 
 
 if __name__ == "__main__":
