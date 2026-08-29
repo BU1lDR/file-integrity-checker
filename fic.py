@@ -634,6 +634,9 @@ def initialize(monitored_folder, baseline_path, exclusions):
 
     file_hashes, scan_errors = directory_scanner(monitored_folder, exclusions)
 
+    if not validate_exclusions(exclusions):
+        return EXIT_ERROR
+    
     #Donot create baseline, if scan was incomplete
     if scan_errors:
         print()
@@ -687,6 +690,9 @@ def check_integrity(monitored_folder, baseline_path, exclusions):
 
     print("Checking file integrity...")
     print()
+
+    if not validate_exclusions(exclusions):
+        return EXIT_ERROR
 
     #Verify baseline protection, before trusting the data.
     if not verify_baseline_hash(baseline_path):
