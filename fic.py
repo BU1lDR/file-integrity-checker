@@ -332,7 +332,7 @@ def check_integrity():
 
     current, scan_errors = directory_scanner(MONITORED_FOLDER)
 
-    results = compare_files(baseline, current)
+    results = compare_files(baseline, current, scan_errors)
 
     display_results(results)
 
