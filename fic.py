@@ -315,7 +315,9 @@ def load_baseline(baseline_path):
 # Saving the baseline hash
 # --------------------------------------------------
 
-def save_baseline_hash():
+def save_baseline_hash(baseline_path):
+
+    baseline_hash_path = (get_baseline_hash_path(baseline_path))
 
     baseline_hash = calculate_hash(BASELINE_PATH)
 
@@ -333,7 +335,10 @@ def save_baseline_hash():
         logging.error(f"Could not save baseline hash: {error}")
         return False
 
-    logging.info("Baseline hash saved successfully")
+    logging.info(
+        f"Baseline hash saved successfully: "
+        f"{baseline_hash_path}"
+        )
 
     return True
 
@@ -768,7 +773,7 @@ def create_parser():
 	    help="Path to the baseline file."
 	)
 
-    
+
     #STATUS
     subparsers.add_parser(
         "status",
@@ -776,6 +781,16 @@ def create_parser():
     )
 
     return parser
+
+
+
+# --------------------------------------------------
+# HELPER
+# --------------------------------------------------
+
+def get_baseline_hash_path(baseline_path):
+
+    return baseline_path.with_suffix(".sha256")
 
 
 
