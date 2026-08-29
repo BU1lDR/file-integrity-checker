@@ -218,3 +218,38 @@
 2026-08-30 00:39:43,178 [INFO] Scanning directory: test_data
 2026-08-30 00:39:43,179 [INFO] Scan completed. Files successfully hashed: 5
 2026-08-30 00:39:43,180 [INFO] Integrity check completed. Unchanged=5, Modified=0, New=0, Deleted=0, ScanErrors=0
+2026-08-30 00:53:59,849 [INFO] Baseline creation started. Folder=test_data, Baseline=baseline\baseline.json
+2026-08-30 00:53:59,849 [INFO] Scanning directory: test_data
+2026-08-30 00:53:59,851 [INFO] Scan completed. Files successfully hashed: 6
+2026-08-30 00:53:59,851 [INFO] Saving baseline to: baseline\baseline.json
+2026-08-30 00:53:59,852 [INFO] Baseline saved successfully: baseline\baseline.json
+2026-08-30 00:53:59,863 [INFO] Baseline hash saved successfully: baseline\baseline.sha256
+2026-08-30 00:53:59,863 [INFO] Baseline created for 6 files.
+2026-08-30 00:54:15,292 [INFO] Baseline creation started. Folder=test_data, Baseline=baseline\baseline.json
+2026-08-30 00:54:15,292 [INFO] Scanning directory: test_data
+2026-08-30 00:54:15,294 [INFO] Scan completed. Files successfully hashed: 6
+2026-08-30 00:54:15,294 [INFO] Saving baseline to: baseline\baseline.json
+2026-08-30 00:54:15,294 [INFO] Baseline saved successfully: baseline\baseline.json
+2026-08-30 00:54:15,296 [INFO] Baseline hash saved successfully: baseline\baseline.sha256
+2026-08-30 00:54:15,296 [INFO] Baseline created for 6 files.
+2026-08-30 00:54:23,710 [INFO] Baseline creation started. Folder=test_data, Baseline=baseline\baseline.json
+2026-08-30 00:54:23,710 [INFO] Scanning directory: test_data
+2026-08-30 00:54:23,711 [INFO] Scan completed. Files successfully hashed: 6
+2026-08-30 00:54:23,711 [INFO] Saving baseline to: baseline\baseline.json
+2026-08-30 00:54:23,712 [INFO] Baseline saved successfully: baseline\baseline.json
+2026-08-30 00:54:23,713 [INFO] Baseline hash saved successfully: baseline\baseline.sha256
+2026-08-30 00:54:23,713 [INFO] Baseline created for 6 files.
+2026-08-30 00:55:31,010 [INFO] Baseline creation started. Folder=., Baseline=baseline\project.json
+2026-08-30 00:55:31,010 [INFO] Scanning directory: .
+2026-08-30 00:55:37,116 [INFO] Scan completed. Files successfully hashed: 884
+2026-08-30 00:55:37,116 [INFO] Saving baseline to: baseline\project.json
+2026-08-30 00:55:37,118 [INFO] Baseline saved successfully: baseline\project.json
+2026-08-30 00:55:37,132 [INFO] Baseline hash saved successfully: baseline\project.sha256
+2026-08-30 00:55:37,132 [INFO] Baseline created for 884 files.
+2026-08-30 00:56:25,299 [INFO] Integrity check started. Folder=., Baseline=baseline\project.json
+2026-08-30 00:56:25,309 [INFO] Baseline integrity verified successfully.
+2026-08-30 00:56:25,310 [INFO] Loading baseline: baseline\project.json
+2026-08-30 00:56:25,312 [INFO] Baseline loaded successfully. Files: 884
+2026-08-30 00:56:25,312 [INFO] Scanning directory: .
+2026-08-30 00:56:25,568 [INFO] Scan completed. Files successfully hashed: 884
+2026-08-30 00:56:25,590 [INFO] Integrity check completed. Unchanged=884, Modified=0, New=0, Deleted=0, ScanErrors=0
