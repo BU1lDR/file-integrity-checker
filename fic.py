@@ -537,7 +537,7 @@ def initialize(monitored_folder, baseline_path):
     if scan_errors:
         print()
         print("[ERROR] Baseline was not created because some files could not be scanned.")
-        
+
         logging.error(
         "Baseline creation aborted because "
         "some files could not be scanned."
@@ -576,21 +576,25 @@ def initialize(monitored_folder, baseline_path):
 # Check current files against baseline (CHECK)
 # --------------------------------------------------
 
-def check_integrity():
+def check_integrity(monitored_folder, baseline_path):
 
-    logging.info("Integrity check started.")
+    logging.info(
+        f"Integrity check started. "
+        f"Folder={monitored_folder}, "
+        f"Baseline={baseline_path}"
+    )
 
     print("Checking file integrity...")
     print()
 
     #Verify baseline protection, before trusting the data.
-    if not verify_baseline_hash():
+    if not verify_baseline_hash(baseline_path):
         print()
         print("Integrity check aborted.")
         return EXIT_ERROR
 
     #Load baseline
-    baseline = load_baseline(BASELINE_PATH)
+    baseline = load_baseline(baseline_path)
 
     if baseline is None:
         print()
@@ -602,7 +606,7 @@ def check_integrity():
         return EXIT_ERROR
 
     #Scan current directory
-    current, scan_errors = directory_scanner(MONITORED_FOLDER)
+    current, scan_errors = directory_scanner(monitored_folder)
 
     #Compare files
     results = compare_files(baseline, current, scan_errors)
