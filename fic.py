@@ -2,6 +2,7 @@ import hashlib
 import json
 import sys
 import logging
+import re
 from pathlib import Path
 
 # --------------------------------------------------
@@ -176,6 +177,23 @@ def load_baseline(baseline_path):
     )
 
     return baseline_data["files"]
+
+# --------------------------------------------------
+# Hash Validator
+# --------------------------------------------------
+
+def isValid_sha256(value):
+
+    if not isinstance(value, str):
+        return False
+
+    return bool(
+        re.fullmatch(
+            r"[0-9a-fA-F]{64}",
+            value
+        )
+    )
+
 
 
 
