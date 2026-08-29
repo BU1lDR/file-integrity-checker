@@ -207,13 +207,14 @@ def directory_scanner(folder, exclusions = None):
 # Save baseline to JSON
 # --------------------------------------------------
 
-def save_baseline(file_hashes, baseline_path):
+def save_baseline(file_hashes, baseline_path, exclusions):
 
     logging.info(f"Saving baseline to: {baseline_path}")
 
     baseline_data = {
-        "version": 1,
+        "version": 2,
         "algorithm": "sha256",
+        "exclusions": exclusions,
         "files": file_hashes
     }
 
