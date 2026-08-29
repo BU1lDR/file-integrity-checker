@@ -832,15 +832,24 @@ def main():
 
     #'Initialize' baseline
     if args.command == "init":
-        return initialize()
+        return initialize(
+            args.folder,
+            args.baseline
+        )
 
     #'check' integrity
     elif args.command == "check":
-        return check_integrity()
+        return check_integrity(
+            args.folder,
+            args.baseline
+        )
 
     #Show 'status'
     elif args.command == "status":
-        return show_status()
+        return show_status(
+            args.folder,
+            args.baseline
+        )
 
     return EXIT_ERROR
 
