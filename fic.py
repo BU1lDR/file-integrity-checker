@@ -893,9 +893,13 @@ def show_status(monitored_folder, baseline_path):
     #COUNT BASELINE FILES
     if baseline_path.exists():
 
-        baseline = load_baseline(
-            baseline_path
+        baseline, exclusions = load_baseline(baseline_path)
+        print(
+            f"Exclusions: "
+            f"{len(exclusions)}"
         )
+        for exclusion in exclusions:
+            print(f"  - {exclusion}")
 
         if baseline is not None:
             print(
