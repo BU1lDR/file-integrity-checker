@@ -832,6 +832,16 @@ def create_parser():
 	    help="Path to the baseline file."
 	)
 
+    init_parser.add_argument(
+        "--exclude",
+        action="append",
+        default=[],
+        help=(
+            "Path to exclude from monitoring. "
+            "Can be specified multiple times."
+        )
+    )
+
 
     #CHECK
     check_parser = subparsers.add_parser(
@@ -852,6 +862,16 @@ def create_parser():
 	    default=BASELINE_PATH,
 	    help="Path to the baseline file."
 	)
+
+    check_parser.add_argument(
+        "--exclude",
+        action="append",
+        default=[],
+        help=(
+            "Path to exclude from monitoring. "
+            "Can be specified multiple times."
+        )
+    )
 
 
     #STATUS
