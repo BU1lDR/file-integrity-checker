@@ -143,31 +143,9 @@ def load_baseline(baseline_path):
         logging.error(f"Invalid JSON in baseline: {baseline_path}")
         return None
 
-
-    if baseline_data.get("version") != 1:
-        print("[ERROR] Unsupported baseline version.")
-
-        logging.error(
-            f"Unsupported baseline version: "
-            f"{baseline_data.get('version')}"
-        )
-        return None
-
-
-    if baseline_data.get("algorithm") != "sha256":
-        print("[ERROR] Unsupported hashing algorithm.")
-
-        logging.error(
-            f"Unsupported hashing algorithm: "
-            f"{baseline_data.get('algorithm')}"
-        )
-        return None
-
-
-    if "files" not in baseline_data:
-        print("[ERROR] Baseline is missing file data.")
-
-        logging.error("Baseline is missing file data.")
+    
+    if not validate_baseline(baseline_data):
+        print("[ERROR] Baseline validation failed.")
         return None
 
 
@@ -195,7 +173,121 @@ def isValid_sha256(value):
     )
 
 
+# --------------------------------------------------
+# Complete validator (root_obj + version + algorithm + file + file_path + hash)
+# --------------------------------------------------
 
+def validate_baseline(baseline_data):
+
+    if not isinstance(baseline_data, dict):
+
+        logging.error(
+            "Baseline root is not a JSON object."
+        )
+
+        return False
+
+    version = baseline_data.get("version")
+
+    if not isinstance(version, int) or isinstance(version, bool):
+
+        logging.error(
+            "Baseline version is not an integer."
+        )
+
+        return False
+
+    if version != 1:
+
+        logging.error(
+            f"Unsupported baseline version: {version}"
+        )
+
+        return False
+
+    algorithm = baseline_data.get("algorithm")
+
+    if not isinstance(algorithm, str):
+
+        logging.error(
+            "Baseline algorithm is not a string."
+        )
+
+        return False
+
+    if algorithm.lower() != "sha256":
+
+        logging.error(
+            f"Unsupported hashing algorithm: {algorithm}"
+        )
+
+        return False
+
+    files = baseline_data.get("files")
+
+    if not isinstance(files, dict):
+
+        logging.error(
+            "Baseline file data is not an object."
+        )
+
+        return False
+
+    for file_path, file_hash in files.items():
+
+        if not isinstance(file_path, str):
+
+            logging.error(
+                "Baseline contains a non-string file path."
+            )
+
+            return False
+
+        if not file_path:
+
+            logging.error(
+                "Baseline contains an empty file path."
+            )
+
+            return False
+
+        if "\\" in file_path:
+
+            logging.error(
+                f"Baseline contains non-normalized path: "
+                f"{file_path}"
+            )
+
+            return False
+
+        if file_path.startswith("/"):
+
+            logging.error(
+                f"Baseline contains absolute path: "
+                f"{file_path}"
+            )
+
+            return False
+
+        if len(file_path) >= 2 and file_path[1] == ":":
+
+            logging.error(
+                f"Baseline contains absolute path: "
+                f"{file_path}"
+            )
+
+            return False
+
+        if not is_valid_sha256(file_hash):
+
+            logging.error(
+                f"Invalid SHA-256 hash for: "
+                f"{file_path}"
+            )
+
+            return False
+
+    return True
 
 # --------------------------------------------------
 # Compare baseline with current scan
