@@ -205,7 +205,7 @@ def directory_scanner(folder, exclusions = None):
 
             #Skipping symbolic-link directories
             if directory_path.is_symlink():
-                directories_to_remove.appnd(directory)
+                directories_to_remove.append(directory)
 
                 symlinks_skipped += 1
 
@@ -253,8 +253,8 @@ def directory_scanner(folder, exclusions = None):
                 symlinks_skipped += 1
 
                 logging.info(
-                    "Skipping ssymbolic link: "
-                    f"{i}"
+                    "Skipping symbolic link: "
+                    f"{file_path}"
                 )
 
                 continue
@@ -792,18 +792,48 @@ def initialize(monitored_folder, baseline_path, exclusions):
     logging.info(
         f"Baseline creation started. "
         f"Folder={monitored_folder}, "
-        f"Baseline={baseline_path}"
+        f"Baseline={baseline_path}, "
+        f"Exclusions={exclusions}"
     )
 
     print("Creating baseline...")
     print()
 
-    file_hashes, scan_errors, symlinks_skipped = directory_scanner(monitored_folder, exclusions)
+    #Verify monitored folder
+    if not monitored_folder.exists():
+        print(
+            f"[ERROR] Monitored folder "
+            f"does not exist: "
+            f"{monitored_folder}"
+        )
 
-    if not validate_exclusions(exclusions):
+        logging.error(
+            f"Monitored folder does "
+            f"not exist: "
+            f"{monitored_folder}"
+        )
+
         return EXIT_ERROR
-    
-    #Donot create baseline, if scan was incomplete
+
+    if not monitored_folder.is_dir():
+        print(
+            f"[ERROR] Monitored path "
+            f"is not a directory: "
+            f"{monitored_folder}"
+        )
+
+        logging.error(
+            f"Monitored path is not "
+            f"a directory: "
+            f"{monitored_folder}"
+        )
+
+        return EXIT_ERROR
+
+    #Scan directory
+    (file_hashes, scan_errors, symlinks_skipped) = directory_scanner(monitored_folder, exclusions)
+
+    #Abort if scan was incomplete
     if scan_errors:
         print()
         print("[ERROR] Baseline was not created because some files could not be scanned.")
@@ -817,13 +847,8 @@ def initialize(monitored_folder, baseline_path, exclusions):
 
         return EXIT_ERROR
 
-    #Create baseline
-    save_baseline(file_hashes, baseline_path, exclusions) #baseline is only created when the scan is complete.
-
-    print(
-        f"Symbolic links skipped: "
-        f"{symlinks_skipped}"
-    )
+    #Save baseline
+    save_baseline(file_hashes, baseline_path, exclusions) 
 
     #Protect baseline
     if not save_baseline_hash(baseline_path):
@@ -838,6 +863,11 @@ def initialize(monitored_folder, baseline_path, exclusions):
         f"Baseline created for "
         f"{len(file_hashes)} files."
     )
+    print(
+        f"Symbolic links skipped: "
+        f"{symlinks_skipped}"
+    )
+
     logging.info(
         f"Baseline created for "
         f"{len(file_hashes)} files."
@@ -848,7 +878,7 @@ def initialize(monitored_folder, baseline_path, exclusions):
 
 
 # --------------------------------------------------
-# Check current files against baseline (CHECK)
+# Check Integrity (CHECK)
 # --------------------------------------------------
 
 def check_integrity(monitored_folder, baseline_path, exclusions):
@@ -857,12 +887,45 @@ def check_integrity(monitored_folder, baseline_path, exclusions):
         f"Integrity check started. "
         f"Folder={monitored_folder}, "
         f"Baseline={baseline_path}"
+        f"Exclusions={exclusions}"
     )
 
     print("Checking file integrity...")
     print()
 
+    #Validate exclusions
     if not validate_exclusions(exclusions):
+        return EXIT_ERROR
+
+    #Verify monitored folder
+    if not monitored_folder.exists():
+        print(
+            f"[ERROR] Monitored folder "
+            f"does not exist: "
+            f"{monitored_folder}"
+        )
+
+        logging.error(
+            f"Monitored folder does "
+            f"not exist: "
+            f"{monitored_folder}"
+        )
+
+        return EXIT_ERROR
+
+    if not monitored_folder.is_dir():
+        print(
+            f"[ERROR] Monitored path "
+            f"is not a directory: "
+            f"{monitored_folder}"
+        )
+
+        logging.error(
+            f"Monitored path is not "
+            f"a directory: "
+            f"{monitored_folder}"
+        )
+
         return EXIT_ERROR
 
     #Verify baseline protection, before trusting the data.
@@ -872,9 +935,21 @@ def check_integrity(monitored_folder, baseline_path, exclusions):
         return EXIT_ERROR
 
     #Load baseline
-    baseline, baseline_exclusions = load_baseline(baseline_path)
+    baseline_data = load_baseline(baseline_path)
 
-    if not exclusions_match(baseline_exclusions,exclusions):
+    if baseline is None:
+        print()
+        print("Create a baseline first with:")
+        print("    python fic.py init")
+    
+        logging.error("Integrity check aborted because baseline could not be loaded.")
+    
+        return EXIT_ERROR
+    
+    baseline, baseline_exclusions = (baseline_data)
+
+    #Verify exclusion config
+    if not exclusions_match(baseline_exclusions, exclusions):
         print(
             "[ERROR] Exclusion "
             "configuration does not "
@@ -898,23 +973,8 @@ def check_integrity(monitored_folder, baseline_path, exclusions):
 
         return EXIT_ERROR
 
-
-    if baseline is None:
-        print()
-        print("Create a baseline first with:")
-        print("    python fic.py init")
-
-        logging.error("Integrity check aborted because baseline could not be loaded.")
-
-        return EXIT_ERROR
-
     #Scan current directory
     current, scan_errors, symlinks_skipped = directory_scanner(monitored_folder, exclusions)
-
-    print(
-        f"Symbolic links skipped: "
-        f"{symlinks_skipped}"
-    )
 
     #Compare files
     results = compare_files(baseline, current, scan_errors)
@@ -923,6 +983,12 @@ def check_integrity(monitored_folder, baseline_path, exclusions):
     display_results(results)
     display_scan_errors(scan_errors)
 
+    print(
+        f"Symbolic links skipped: "
+        f"{symlinks_skipped}"
+    )
+
+    #Log summary
     logging.info(
         "Integrity check completed. "
         f"Unchanged={len(results['unchanged'])}, "
