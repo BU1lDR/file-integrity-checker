@@ -98,6 +98,25 @@ def is_excluded(
     return False
 
 
+# --------------------------------------------------
+# Validation helper
+# --------------------------------------------------
+
+def validate_exclusion(exclusion):
+
+    path = Path(exclusion)
+
+    if path.is_absolute():
+        return False
+
+    for part in path.parts:
+
+        if part == "..":
+            return False
+
+    return True
+
+
 
 # --------------------------------------------------
 # Calculate SHA-256 hash of a file
