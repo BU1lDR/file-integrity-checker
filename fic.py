@@ -639,21 +639,90 @@ def create_parser():
 
 def show_status():
 
-    print("File Integrity Checker status")
-    print("----------------------------")
-    print(f"Baseline file: {'present' if BASELINE_PATH.exists() else 'missing'}")
-    print(f"Baseline hash file: {'present' if BASELINE_HASH_PATH.exists() else 'missing'}")
+    print("File Integrity Checker Status")
+    print("-----------------------------")
 
+    #FIRST STATUS CHECK
+    if MONITORED_FOLDER.exists():
+        print(
+            f"Monitored folder: OK "
+            f"({MONITORED_FOLDER})"
+        )
+
+    else:
+        print(
+            f"Monitored folder: MISSING "
+            f"({MONITORED_FOLDER})"
+        )
+
+    #CHECK BASELINE
+    if BASELINE_PATH.exists():
+        print(
+            f"Baseline: OK "
+            f"({BASELINE_PATH})"
+        )
+
+    else:
+        print(
+            f"Baseline: MISSING "
+            f"({BASELINE_PATH})"
+        )
+
+    #CHECK BASELINE HASH
+    if BASELINE_HASH_PATH.exists():
+        print(
+            f"Baseline hash: OK "
+            f"({BASELINE_HASH_PATH})"
+        )
+
+    else:
+        print(
+            f"Baseline hash: MISSING "
+            f"({BASELINE_HASH_PATH})"
+        )
+
+    #COUNT BASELINE FILES
+    if BASELINE_PATH.exists():
+
+        baseline = load_baseline(
+            BASELINE_PATH
+        )
+
+        if baseline is not None:
+            print(
+                f"Baseline files: {len(baseline)}"
+            )
+
+        else:
+            print(
+                "Baseline files: unavailable"
+            )
+
+    else:
+        print(
+            "Baseline files: unavailable"
+        )
+
+    #VERIFY THE BASELINE
     if BASELINE_PATH.exists() and BASELINE_HASH_PATH.exists():
+
         if verify_baseline_hash():
-            print("Baseline integrity: OK")
-            return EXIT_SUCCESS
+            print(
+                "Baseline integrity: OK"
+            )
 
-        print("Baseline integrity: FAILED")
-        return EXIT_INTEGRITY_FAILURE
+        else:
+            print(
+                "Baseline integrity: FAILED"
+            )
 
-    print("Baseline integrity: unavailable")
-    return EXIT_ERROR
+    else:
+        print(
+            "Baseline integrity: unavailable"
+        )
+
+    return EXIT_SUCCESS
+
 
 
 # --------------------------------------------------
