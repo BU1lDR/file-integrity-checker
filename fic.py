@@ -45,6 +45,16 @@ def setup_logging():
     )
 
 
+# --------------------------------------------------
+#  Path normalization
+# --------------------------------------------------
+
+def normalize_relative_path(file_path,root_folder):
+
+    relative_path = file_path.relative_to(root_folder)
+    return relative_path.as_posix()
+
+
 
 # --------------------------------------------------
 # Calculate SHA-256 hash of a file
