@@ -55,6 +55,49 @@ def normalize_relative_path(file_path,root_folder):
     return relative_path.as_posix()
 
 
+# --------------------------------------------------
+# Exclusion Matcher
+# --------------------------------------------------
+
+def is_excluded(
+    file_path,
+    root_folder,
+    exclusions
+):
+
+    relative_path = (
+        file_path.relative_to(
+            root_folder
+        )
+    )
+
+    normalized_path = (
+        relative_path.as_posix()
+    )
+
+    for exclusion in exclusions:
+
+        exclusion_path = (
+            Path(exclusion)
+        )
+
+        if normalized_path == (
+            exclusion_path.as_posix()
+        ):
+
+            return True
+
+
+        if normalized_path.startswith(
+            exclusion_path.as_posix() + "/"
+        ):
+
+            return True
+
+
+    return False
+
+
 
 # --------------------------------------------------
 # Calculate SHA-256 hash of a file
@@ -81,7 +124,10 @@ def calculate_hash(file_path):
 # Scan a directory and calculate hashes
 # --------------------------------------------------
 
-def directory_scanner(folder):
+def directory_scanner(folder, exclusions = None):
+
+    if exclusions is None:
+        exclusions = []
 
     logging.info(f"Scanning directory: {folder}")
 
@@ -91,12 +137,14 @@ def directory_scanner(folder):
 
     for i in folder.rglob("*"):
 
+        if is_excluded(i, folder, exclusions):
+            continue
+
         if i.is_file():
 
             file_hash = calculate_hash(i)
 
-            relative_path = i.relative_to(folder)
-            normalized_path = relative_path.as_posix()
+            normalized_path = normalize_relative_path(i, folder)
 
             if file_hash is not None:
                 file_hashes[normalized_path] = file_hash
