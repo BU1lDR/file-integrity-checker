@@ -253,6 +253,9 @@ def display_results(results):
     for file_path in results["deleted"]:
         print(f"[DELETED]   {file_path}")
 
+    for file_path in results["scan_error"]:
+        print(f"[SCAN ERROR] {file_path}")
+
     print()
     print("Integrity Check Summary")
     print("-----------------------")
@@ -261,6 +264,7 @@ def display_results(results):
     print(f"Modified:  {len(results['modified'])}")
     print(f"New:       {len(results['new'])}")
     print(f"Deleted:   {len(results['deleted'])}")
+    print(f"Scan errors: {len(results['scan_error'])}")
 
 # --------------------------------------------------
 # Display scan errors
