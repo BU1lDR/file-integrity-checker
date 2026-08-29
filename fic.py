@@ -95,7 +95,7 @@ def directory_scanner(folder):
 
     logging.info(
         f"Scan completed. " 
-        f"Files succesfully hashed: {len(file_hashes)}"
+        f"Files successfully hashed: {len(file_hashes)}"
     )
 
     return file_hashes, errors
@@ -319,7 +319,7 @@ def save_baseline_hash(baseline_path):
 
     baseline_hash_path = (get_baseline_hash_path(baseline_path))
 
-    baseline_hash = calculate_hash(BASELINE_PATH)
+    baseline_hash = calculate_hash(baseline_path)
 
     if baseline_hash is None:
 
@@ -611,7 +611,7 @@ def check_integrity(monitored_folder, baseline_path):
     #Compare files
     results = compare_files(baseline, current, scan_errors)
 
-    #Displat results
+    #Display results
     display_results(results)
     display_scan_errors(scan_errors)
 
@@ -624,6 +624,10 @@ def check_integrity(monitored_folder, baseline_path):
         f"ScanErrors={len(results['scan_error'])}"
     )
 
+
+    #Incomplete scan
+    if scan_errors:
+        return EXIT_ERROR
 
     #Integrity violation
     if (
@@ -653,46 +657,46 @@ def show_status(monitored_folder, baseline_path):
     if monitored_folder.exists():
         print(
             f"Monitored folder: OK "
-            f"({MONITORED_FOLDER})"
+            f"({monitored_folder})"
         )
 
     else:
         print(
             f"Monitored folder: MISSING "
-            f"({MONITORED_FOLDER})"
+            f"({monitored_folder})"
         )
 
     #CHECK BASELINE
     if baseline_path.exists():
         print(
             f"Baseline: OK "
-            f"({BASELINE_PATH})"
+            f"({baseline_path})"
         )
 
     else:
         print(
             f"Baseline: MISSING "
-            f"({BASELINE_PATH})"
+            f"({baseline_path})"
         )
 
     #CHECK BASELINE HASH
     if baseline_hash_path.exists():
         print(
             f"Baseline hash: OK "
-            f"({BASELINE_HASH_PATH})"
+            f"({baseline_hash_path})"
         )
 
     else:
         print(
             f"Baseline hash: MISSING "
-            f"({BASELINE_HASH_PATH})"
+            f"({baseline_hash_path})"
         )
 
     #COUNT BASELINE FILES
     if baseline_path.exists():
 
         baseline = load_baseline(
-            BASELINE_PATH
+            baseline_path
         )
 
         if baseline is not None:
@@ -713,7 +717,7 @@ def show_status(monitored_folder, baseline_path):
     #VERIFY THE BASELINE
     if baseline_path.exists() and baseline_hash_path.exists():
 
-        if verify_baseline_hash():
+        if verify_baseline_hash(baseline_path):
             print(
                 "Baseline integrity: OK"
             )
@@ -793,9 +797,23 @@ def create_parser():
 
 
     #STATUS
-    subparsers.add_parser(
+    status_parser = subparsers.add_parser(
         "status",
         help="Show checker status."
+    )
+
+    status_parser.add_argument(
+            "--folder",
+            type=Path,
+            default=MONITORED_FOLDER,
+            help="Folder to check."
+    )
+
+    status_parser.add_argument(
+        "--baseline",
+        type=Path,
+        default=BASELINE_PATH,
+        help="Path to the baseline file."
     )
 
     return parser

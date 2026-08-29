@@ -116,3 +116,31 @@
 2026-08-29 21:24:07,675 [INFO] Baseline saved successfully: baseline\baseline.json
 2026-08-29 21:24:07,677 [INFO] Baseline hash saved successfully
 2026-08-29 21:24:07,678 [INFO] Baseline created for 5 files.
+2026-08-29 23:25:17,047 [INFO] Baseline creation started. Folder=test_data, Baseline=baseline\baseline.json
+2026-08-29 23:25:17,047 [INFO] Scanning directory: test_data
+2026-08-29 23:25:17,049 [INFO] Scan completed. Files succesfully hashed: 5
+2026-08-29 23:25:17,049 [INFO] Saving baseline to: baseline\baseline.json
+2026-08-29 23:25:17,050 [INFO] Baseline saved successfully: baseline\baseline.json
+2026-08-29 23:25:17,051 [INFO] Baseline hash saved successfully: baseline\baseline.sha256
+2026-08-29 23:25:17,051 [INFO] Baseline created for 5 files.
+2026-08-29 23:25:21,675 [INFO] Integrity check started. Folder=test_data, Baseline=baseline\baseline.json
+2026-08-29 23:25:21,677 [INFO] Baseline integrity verified successfully.
+2026-08-29 23:25:21,677 [INFO] Loading baseline: baseline\baseline.json
+2026-08-29 23:25:21,677 [INFO] Baseline loaded successfully. Files: 5
+2026-08-29 23:25:21,677 [INFO] Scanning directory: test_data
+2026-08-29 23:25:21,678 [INFO] Scan completed. Files succesfully hashed: 5
+2026-08-29 23:25:21,679 [INFO] Integrity check completed. Unchanged=5, Modified=0, New=0, Deleted=0, ScanErrors=0
+2026-08-29 23:26:45,136 [INFO] Baseline creation started. Folder=important_files, Baseline=baseline\baseline.json
+2026-08-29 23:26:45,137 [INFO] Scanning directory: important_files
+2026-08-29 23:26:45,137 [INFO] Scan completed. Files succesfully hashed: 0
+2026-08-29 23:26:45,137 [INFO] Saving baseline to: baseline\baseline.json
+2026-08-29 23:26:45,137 [INFO] Baseline saved successfully: baseline\baseline.json
+2026-08-29 23:26:45,153 [INFO] Baseline hash saved successfully: baseline\baseline.sha256
+2026-08-29 23:26:45,153 [INFO] Baseline created for 0 files.
+2026-08-29 23:27:11,352 [INFO] Baseline creation started. Folder=important_files, Baseline=baseline\baseline.json
+2026-08-29 23:27:11,352 [INFO] Scanning directory: important_files
+2026-08-29 23:27:11,352 [INFO] Scan completed. Files succesfully hashed: 0
+2026-08-29 23:27:11,353 [INFO] Saving baseline to: baseline\baseline.json
+2026-08-29 23:27:11,353 [INFO] Baseline saved successfully: baseline\baseline.json
+2026-08-29 23:27:11,355 [INFO] Baseline hash saved successfully: baseline\baseline.sha256
+2026-08-29 23:27:11,355 [INFO] Baseline created for 0 files.
