@@ -296,7 +296,7 @@ def load_baseline(baseline_path):
         logging.error(f"Invalid JSON in baseline: {baseline_path}")
         return None
 
-    
+    #VALIDATING STRUCTURE
     if not validate_baseline(baseline_data):
         print("[ERROR] Baseline validation failed.")
         return None
@@ -363,20 +363,21 @@ def verify_baseline_hash():
         )
         return False
 
-
+    #VALIDATING STORED HASH
     if not isValid_sha256(expected_hash):
         print("[ERROR] Baseline hash file is invalid.")
 
         logging.error("Baseline hash file contains an invalid SHA-256 hash.")
         return False
 
-
+    #CALCULATING CURRENT HASH
     actual_hash = calculate_hash(BASELINE_PATH)
 
     if actual_hash is None:
         print("[ERROR] Could not calculate baseline hash.")
         return False
 
+    #COMPARING HASHES
     if actual_hash != expected_hash:
         print("[ALERT] Baseline has been modified!")
 
@@ -504,7 +505,7 @@ def display_scan_errors(errors):
 
 
 # --------------------------------------------------
-# Initialize a new baseline
+# Initialize a new baseline (INIT)
 # --------------------------------------------------
 
 def initialize():
@@ -516,6 +517,7 @@ def initialize():
 
     file_hashes, scan_errors = directory_scanner(MONITORED_FOLDER)
 
+    #Donot create baseline, if scan was incomplete
     if scan_errors:
         print()
         print("[ERROR] Baseline was not created because some files could not be scanned.")
@@ -528,8 +530,10 @@ def initialize():
 
         return EXIT_ERROR
 
+    #Create baseline
     save_baseline(file_hashes, BASELINE_PATH) #baseline is only created when the scan is complete.
 
+    #Protect baseline
     if not save_baseline_hash():
         print("[ERROR] Baseline protection failed.")
 
@@ -552,7 +556,7 @@ def initialize():
 
 
 # --------------------------------------------------
-# Check current files against baseline
+# Check current files against baseline (CHECK)
 # --------------------------------------------------
 
 def check_integrity():
@@ -562,11 +566,13 @@ def check_integrity():
     print("Checking file integrity...")
     print()
 
+    #Verify baseline protection, before trusting the data.
     if not verify_baseline_hash():
         print()
         print("Integrity check aborted.")
         return EXIT_ERROR
 
+    #Load baseline
     baseline = load_baseline(BASELINE_PATH)
 
     if baseline is None:
@@ -578,12 +584,14 @@ def check_integrity():
 
         return EXIT_ERROR
 
+    #Scan current directory
     current, scan_errors = directory_scanner(MONITORED_FOLDER)
 
+    #Compare files
     results = compare_files(baseline, current, scan_errors)
 
+    #Displat results
     display_results(results)
-
     display_scan_errors(scan_errors)
 
     logging.info(
@@ -596,6 +604,7 @@ def check_integrity():
     )
 
 
+    #Integrity violation
     if (
         results["modified"]
         or results["new"]
@@ -603,49 +612,13 @@ def check_integrity():
     ):
         return EXIT_INTEGRITY_FAILURE
 
+    #if everything matches:
     return EXIT_SUCCESS
 
-    
-
-# --------------------------------------------------
-# Argument parser
-# --------------------------------------------------
-
-def create_parser():
-
-    parser = argparse.ArgumentParser(
-        description=(
-            "File Integrity Checker - "
-            "detect unauthorized file changes."
-        )
-    )
-
-# SUBCOMMANDS
-    subparsers = parser.add_subparsers(
-        dest="command"
-    )
-
-    subparsers.add_parser(
-        "init",
-        help="Create a new baseline."
-    )
-
-    subparsers.add_parser(
-        "check",
-        help="Check file integrity."
-    )
-
-    subparsers.add_parser(
-        "status",
-        help="Show checker status."
-    )
-
-    return parser
-
 
 
 # --------------------------------------------------
-# Show checker status
+# Show checker status (STATUS)
 # --------------------------------------------------
 
 def show_status():
@@ -734,6 +707,46 @@ def show_status():
 
     return EXIT_SUCCESS
 
+    
+
+# --------------------------------------------------
+# CLI parser
+# --------------------------------------------------
+
+def create_parser():
+
+    parser = argparse.ArgumentParser(
+        description=(
+            "File Integrity Checker - "
+            "detect unauthorized file changes."
+        )
+    )
+
+#SUBCOMMANDS:
+    subparsers = parser.add_subparsers(
+        dest="command"
+    )
+
+    #INIT
+    subparsers.add_parser(
+        "init",
+        help="Create a new baseline."
+    )
+
+    #CHECK
+    subparsers.add_parser(
+        "check",
+        help="Check file integrity."
+    )
+
+    #STATUS
+    subparsers.add_parser(
+        "status",
+        help="Show checker status."
+    )
+
+    return parser
+
 
 
 # --------------------------------------------------
@@ -744,50 +757,32 @@ def main():
 
     setup_logging()
 
-    if len(sys.argv) < 2:
-
-        print("File Integrity Checker")
-        print()
-        print("Usage:")
-        print("    python fic.py init")
-        print("    python fic.py check")
-
-        return
-
-
-    command = sys.argv[1].lower()
-
-    if command == "init":
-        initialize()
-
-    elif command == "check":
-        check_integrity()
-
-    else:
-        print(f"[ERROR] Unknown command: {command}")
-        print()
-        print("Usage:")
-        print("    python fic.py init")
-        print("    python fic.py check")
-
 
     parser = create_parser()
 
     args = parser.parse_args()
 
-    if args.command == "init":
-        return initialize()
-
-    elif args.command == "check":
-        return check_integrity()
-
-    elif args.command == "status":
-        return show_status()
-
-    else:
+    #No command
+    if args.command is None:
         parser.print_help()
         return EXIT_ERROR
 
+    #'Initialize' baseline
+    if args.command == "init":
+        return initialize()
 
+    #'check' integrity
+    elif args.command == "check":
+        return check_integrity()
+
+    #Show 'status'
+    elif args.command == "status":
+        return show_status()
+
+    return EXIT_ERROR
+
+#---------------**PROGRAM ENTRY POINT**--------------
 if __name__ == "__main__":
-    main()
+    sys.exit(
+        main()
+    )
