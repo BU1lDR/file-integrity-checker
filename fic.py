@@ -14,6 +14,14 @@ BASELINE_PATH = Path("baseline/baseline.json")
 BASELINE_HASH_PATH = Path("baseline/baseline.sha256")
 LOG_PATH = Path("logs/fic.log")
 
+# Defining exit codes
+EXIT_SUCCESS = 0 # no integrity problem detected.
+EXIT_INTEGRITY_FAILURE = 1 # the checker successfully ran, but detected a file integrity problem.
+EXIT_ERROR = 2 # the checker itself couldn't complete normally.
+# 0- PASS
+# 1- VIOLATION
+# 2- ERROR
+
 
 # --------------------------------------------------
 # Configure LOGGING
@@ -506,7 +514,7 @@ def initialize():
 
         display_scan_errors(scan_errors)
 
-        return
+        return EXIT_ERROR
 
     save_baseline(file_hashes, BASELINE_PATH) #baseline is only created when the scan is complete.
 
@@ -514,7 +522,7 @@ def initialize():
         print("[ERROR] Baseline protection failed.")
 
         logging.error("Baseline protection failed.")
-        return
+        return EXIT_ERROR
 
     
     print()
@@ -526,6 +534,10 @@ def initialize():
         f"Baseline created for "
         f"{len(file_hashes)} files."
     )
+
+    return EXIT_SUCCESS
+
+
 
 # --------------------------------------------------
 # Check current files against baseline
@@ -541,7 +553,7 @@ def check_integrity():
     if not verify_baseline_hash():
         print()
         print("Integrity check aborted.")
-        return
+        return EXIT_ERROR
 
     baseline = load_baseline(BASELINE_PATH)
 
@@ -552,7 +564,7 @@ def check_integrity():
 
         logging.error("Integrity check aborted because baseline could not be loaded.")
 
-        return
+        return EXIT_ERROR
 
     current, scan_errors = directory_scanner(MONITORED_FOLDER)
 
@@ -570,6 +582,17 @@ def check_integrity():
         f"Deleted={len(results['deleted'])}, "
         f"ScanErrors={len(results['scan_error'])}"
     )
+
+
+    if (
+        results["modified"]
+        or results["new"]
+        or results["deleted"]
+    ):
+        return EXIT_INTEGRITY_FAILURE
+
+    return EXIT_SUCCESS
+    
 
 
 # --------------------------------------------------
