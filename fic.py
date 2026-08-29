@@ -642,13 +642,15 @@ def check_integrity(monitored_folder, baseline_path):
 # Show checker status (STATUS)
 # --------------------------------------------------
 
-def show_status():
+def show_status(monitored_folder, baseline_path):
+
+    baseline_hash_path = (get_baseline_hash_path(baseline_path))
 
     print("File Integrity Checker Status")
     print("-----------------------------")
 
     #FIRST STATUS CHECK
-    if MONITORED_FOLDER.exists():
+    if monitored_folder.exists():
         print(
             f"Monitored folder: OK "
             f"({MONITORED_FOLDER})"
@@ -661,7 +663,7 @@ def show_status():
         )
 
     #CHECK BASELINE
-    if BASELINE_PATH.exists():
+    if baseline_path.exists():
         print(
             f"Baseline: OK "
             f"({BASELINE_PATH})"
@@ -674,7 +676,7 @@ def show_status():
         )
 
     #CHECK BASELINE HASH
-    if BASELINE_HASH_PATH.exists():
+    if baseline_hash_path.exists():
         print(
             f"Baseline hash: OK "
             f"({BASELINE_HASH_PATH})"
@@ -687,7 +689,7 @@ def show_status():
         )
 
     #COUNT BASELINE FILES
-    if BASELINE_PATH.exists():
+    if baseline_path.exists():
 
         baseline = load_baseline(
             BASELINE_PATH
@@ -709,7 +711,7 @@ def show_status():
         )
 
     #VERIFY THE BASELINE
-    if BASELINE_PATH.exists() and BASELINE_HASH_PATH.exists():
+    if baseline_path.exists() and baseline_hash_path.exists():
 
         if verify_baseline_hash():
             print(
