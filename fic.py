@@ -12,7 +12,6 @@ from pathlib import Path
 
 MONITORED_FOLDER = Path("test_data")
 BASELINE_PATH = Path("baseline/baseline.json")
-BASELINE_HASH_PATH = Path("baseline/baseline.sha256")
 LOG_PATH = Path("logs/fic.log")
 
 #---------------------------------------------------
@@ -45,8 +44,53 @@ def setup_logging():
     )
 
 
+
 # --------------------------------------------------
-#  Path normalization
+# Exclusion path validation
+# --------------------------------------------------
+
+def validate_exclusion(exclusion):
+
+    path = Path(exclusion)
+
+    if path.is_absolute():
+        return False
+    
+    for part in path.parts:
+
+        if part == "..":
+            return False
+
+    return True
+
+
+# --------------------------------------------------
+# All exclusions validation
+# --------------------------------------------------
+
+def validate_exclusions(exclusions):
+
+    for exclusion in exclusions:
+
+        if not validate_exclusion(exclusion):
+            print(
+                f"[ERROR] Invalid "
+                f"exclusion: {exclusion}"
+            )
+
+            logging.error(
+                f"Invalid exclusion: "
+                f"{exclusion}"
+            )
+
+            return False
+
+    return True
+
+
+
+# --------------------------------------------------
+#  Relative path normalization
 # --------------------------------------------------
 
 def normalize_relative_path(file_path,root_folder):
@@ -55,8 +99,9 @@ def normalize_relative_path(file_path,root_folder):
     return relative_path.as_posix()
 
 
+
 # --------------------------------------------------
-# Exclusion Matcher
+# Determination of whether a path is excluded or not?
 # --------------------------------------------------
 
 def is_excluded(
@@ -81,13 +126,14 @@ def is_excluded(
             Path(exclusion)
         )
 
+        #EXACT MATCH
         if normalized_path == (
             exclusion_path.as_posix()
         ):
 
             return True
 
-
+        #DIRECTORY MATCH
         if normalized_path.startswith(
             exclusion_path.as_posix() + "/"
         ):
@@ -96,65 +142,6 @@ def is_excluded(
 
 
     return False
-
-# --------------------------------------------------
-# Config comparison
-# --------------------------------------------------
-
-def exclusions_match(expected,supplied):
-
-    expected_set = set(expected)
-
-    supplied_set = set(supplied)
-
-    return (
-        expected_set
-        == supplied_set
-    )
-
-
-
-# --------------------------------------------------
-# Validation helper
-# --------------------------------------------------
-
-def validate_exclusion(exclusion):
-
-    path = Path(exclusion)
-
-    if path.is_absolute():
-        return False
-    
-    for part in path.parts:
-
-        if part == "..":
-            return False
-
-    return True
-
-
-# --------------------------------------------------
-# Validate exclusions
-# --------------------------------------------------
-
-def validate_exclusions(exclusions):
-
-    for exclusion in exclusions:
-
-        if not validate_exclusion(exclusion):
-            print(
-                f"[ERROR] Invalid "
-                f"exclusion: {exclusion}"
-            )
-
-            logging.error(
-                f"Invalid exclusion: "
-                f"{exclusion}"
-            )
-
-            return False
-
-    return True
 
 
 
@@ -247,7 +234,7 @@ def save_baseline(file_hashes, baseline_path, exclusions):
 
 
 # --------------------------------------------------
-# Hash Validator
+# SHA-256 Hash Validator
 # --------------------------------------------------
 
 def isValid_sha256(value):
@@ -434,7 +421,7 @@ def validate_baseline(baseline_data):
 
 
 # --------------------------------------------------
-# Loading + validating baseline from JSON
+# Loading baseline from JSON
 # --------------------------------------------------
 
 def load_baseline(baseline_path):
@@ -475,6 +462,16 @@ def load_baseline(baseline_path):
         baseline_data["files"],
         baseline_data["exclusions"]
     )
+
+
+
+# --------------------------------------------------
+# Baseline hash path (HELPER)
+# --------------------------------------------------
+
+def get_baseline_hash_path(baseline_path):
+
+    return baseline_path.with_suffix(".sha256")
 
 
 
@@ -570,6 +567,20 @@ def verify_baseline_hash(baseline_path):
 
 
 # --------------------------------------------------
+# Config comparison
+# --------------------------------------------------
+
+def exclusions_match(expected,supplied):
+
+    expected_set = set(expected)
+
+    supplied_set = set(supplied)
+
+    return (expected_set == supplied_set)
+
+
+
+# --------------------------------------------------
 # Compare baseline with current scan
 # --------------------------------------------------
 
@@ -631,7 +642,7 @@ def compare_files(baseline, current, scan_errors):
 
 
 # --------------------------------------------------
-# Display comparison results
+# Display integrity results
 # --------------------------------------------------
 
 def display_results(results):
@@ -1039,16 +1050,6 @@ def create_parser():
     )
 
     return parser
-
-
-
-# --------------------------------------------------
-# HELPER
-# --------------------------------------------------
-
-def get_baseline_hash_path(baseline_path):
-
-    return baseline_path.with_suffix(".sha256")
 
 
 
