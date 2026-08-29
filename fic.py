@@ -301,7 +301,7 @@ def save_baseline_hash():
 
     if baseline_hash is None:
 
-        logging.error("Could not calculate basleine hash.")
+        logging.error("Could not calculate baseline hash.")
         return False
 
     try:
@@ -498,7 +498,7 @@ def initialize():
 
     if scan_errors:
         print()
-        print("[ERROR] Baseline was not created for because some files could not be scanned.")
+        print("[ERROR] Baseline was not created because some files could not be scanned.")
         logging.error(
         "Baseline creation aborted because "
         "some files could not be scanned."
@@ -567,7 +567,7 @@ def check_integrity():
         f"Unchanged={len(results['unchanged'])}, "
         f"Modified={len(results['modified'])}, "
         f"New={len(results['new'])}, "
-        f"Deleted={len(results['deleted'])}"
+        f"Deleted={len(results['deleted'])}, "
         f"ScanErrors={len(results['scan_error'])}"
     )
 
