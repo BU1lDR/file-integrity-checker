@@ -520,19 +520,24 @@ def display_scan_errors(errors):
 # Initialize a new baseline (INIT)
 # --------------------------------------------------
 
-def initialize():
+def initialize(monitored_folder, baseline_path):
 
-    logging.info("Baseline creation started.")
+    logging.info(
+        f"Baseline creation started. "
+        f"Folder={monitored_folder}, "
+        f"Baseline={baseline_path}"
+    )
 
     print("Creating baseline...")
     print()
 
-    file_hashes, scan_errors = directory_scanner(MONITORED_FOLDER)
+    file_hashes, scan_errors = directory_scanner(monitored_folder)
 
     #Donot create baseline, if scan was incomplete
     if scan_errors:
         print()
         print("[ERROR] Baseline was not created because some files could not be scanned.")
+        
         logging.error(
         "Baseline creation aborted because "
         "some files could not be scanned."
@@ -543,10 +548,10 @@ def initialize():
         return EXIT_ERROR
 
     #Create baseline
-    save_baseline(file_hashes, BASELINE_PATH) #baseline is only created when the scan is complete.
+    save_baseline(file_hashes, baseline_path) #baseline is only created when the scan is complete.
 
     #Protect baseline
-    if not save_baseline_hash():
+    if not save_baseline_hash(baseline_path):
         print("[ERROR] Baseline protection failed.")
 
         logging.error("Baseline protection failed.")
