@@ -19,3 +19,41 @@
 2026-08-30 13:59:54,545 [INFO] Saving baseline to: baseline\baseline.json
 2026-08-30 13:59:54,553 [ERROR] Could not save baseline: [WinError 32] The process cannot access the file because it is being used by another process: 'baseline\\baseline.json.tmp' -> 'baseline\\baseline.json'
 2026-08-30 13:59:54,554 [ERROR] Baseline creation failed because baseline could not be saved.
+2026-08-30 14:01:28,676 [INFO] Baseline creation started. Folder=test_data, Baseline=baseline\baseline.json, Exclusions=[]
+2026-08-30 14:01:28,677 [INFO] Scanning directory: test_data
+2026-08-30 14:01:28,677 [INFO] Exclusions: []
+2026-08-30 14:01:28,679 [INFO] Scan completed. Files successfully hashed: 3, Symlinks skipped: 0, Errors: 0
+2026-08-30 14:01:28,679 [INFO] Saving baseline to: baseline\baseline.json
+2026-08-30 14:01:28,688 [ERROR] Could not save baseline: [WinError 32] The process cannot access the file because it is being used by another process: 'baseline\\baseline.json.tmp' -> 'baseline\\baseline.json'
+2026-08-30 14:01:28,689 [ERROR] Baseline creation failed because baseline could not be saved.
+2026-08-30 14:07:46,006 [INFO] Baseline creation started. Folder=test_data, Baseline=baseline\baseline.json, Exclusions=[]
+2026-08-30 14:07:46,006 [INFO] Scanning directory: test_data
+2026-08-30 14:07:46,007 [INFO] Exclusions: []
+2026-08-30 14:07:46,008 [INFO] Scan completed. Files successfully hashed: 3, Symlinks skipped: 0, Errors: 0
+2026-08-30 14:07:46,008 [INFO] Saving baseline to: baseline\baseline.json
+2026-08-30 14:07:46,017 [WARNING] Atomic replacement attempt 1 failed: [WinError 32] The process cannot access the file because it is being used by another process: 'baseline\\baseline.json.tmp' -> 'baseline\\baseline.json'
+2026-08-30 14:07:46,218 [WARNING] Atomic replacement attempt 2 failed: [WinError 32] The process cannot access the file because it is being used by another process: 'baseline\\baseline.json.tmp' -> 'baseline\\baseline.json'
+2026-08-30 14:07:46,419 [WARNING] Atomic replacement attempt 3 failed: [WinError 32] The process cannot access the file because it is being used by another process: 'baseline\\baseline.json.tmp' -> 'baseline\\baseline.json'
+2026-08-30 14:07:46,620 [WARNING] Atomic replacement attempt 4 failed: [WinError 32] The process cannot access the file because it is being used by another process: 'baseline\\baseline.json.tmp' -> 'baseline\\baseline.json'
+2026-08-30 14:07:46,822 [WARNING] Atomic replacement attempt 5 failed: [WinError 32] The process cannot access the file because it is being used by another process: 'baseline\\baseline.json.tmp' -> 'baseline\\baseline.json'
+2026-08-30 14:07:46,822 [ERROR] Atomic replacement failed after all retries.
+2026-08-30 14:07:46,822 [ERROR] Could not remove temporary baseline file: [WinError 32] The process cannot access the file because it is being used by another process: 'baseline\\baseline.json.tmp'
+2026-08-30 14:07:46,823 [ERROR] Baseline creation failed because baseline could not be saved.
+2026-08-30 14:16:53,947 [INFO] Baseline creation started. Folder=test_data, Baseline=baseline\baseline.json, Exclusions=[]
+2026-08-30 14:16:53,947 [INFO] Scanning directory: test_data
+2026-08-30 14:16:53,947 [INFO] Exclusions: []
+2026-08-30 14:16:53,948 [INFO] Scan completed. Files successfully hashed: 3, Symlinks skipped: 0, Errors: 0
+2026-08-30 14:16:53,949 [INFO] Saving baseline to: baseline\baseline.json
+2026-08-30 14:16:53,958 [INFO] Temporary baseline created: baseline\baseline.json.tmp
+2026-08-30 14:16:53,958 [INFO] Atomic replacement succeeded on attempt 1.
+2026-08-30 14:16:53,959 [INFO] Baseline saved successfully: baseline\baseline.json
+2026-08-30 14:16:53,963 [ERROR] Atomic replacement failed: [WinError 2] The system cannot find the file specified: 'baseline\\baseline.sha256.tmp' -> 'baseline\\baseline.sha256'
+2026-08-30 14:16:53,963 [ERROR] Baseline protection failed.
+2026-08-30 14:18:53,108 [INFO] Baseline creation started. Folder=test_data, Baseline=baseline\baseline.json, Exclusions=[]
+2026-08-30 14:18:53,109 [INFO] Scanning directory: test_data
+2026-08-30 14:18:53,109 [INFO] Exclusions: []
+2026-08-30 14:18:53,110 [INFO] Scan completed. Files successfully hashed: 3, Symlinks skipped: 0, Errors: 0
+2026-08-30 14:19:02,054 [INFO] Baseline creation started. Folder=test_data, Baseline=baseline\baseline.json, Exclusions=[]
+2026-08-30 14:19:02,054 [INFO] Scanning directory: test_data
+2026-08-30 14:19:02,054 [INFO] Exclusions: []
+2026-08-30 14:19:02,056 [INFO] Scan completed. Files successfully hashed: 3, Symlinks skipped: 0, Errors: 0
