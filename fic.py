@@ -49,19 +49,15 @@ def setup_logging():
 # Validate an exclusion path
 # --------------------------------------------------
 
-def validate_exclusion(
-    exclusion
-):
+def validate_exclusion(exclusion):
 
     path = Path(exclusion)
 
     # Absolute paths are not allowed
-
     if path.is_absolute():
         return False
 
     # Parent-directory traversal is not allowed
-
     for part in path.parts:
 
         if part == "..":
@@ -74,15 +70,11 @@ def validate_exclusion(
 # Validate all exclusions
 # --------------------------------------------------
 
-def validate_exclusions(
-    exclusions
-):
+def validate_exclusions(exclusions):
 
     for exclusion in exclusions:
 
-        if not validate_exclusion(
-            exclusion
-        ):
+        if not validate_exclusion(exclusion):
             print(
                 f"[ERROR] Invalid "
                 f"exclusion: {exclusion}"
@@ -102,15 +94,10 @@ def validate_exclusions(
 # Normalize a relative path
 # --------------------------------------------------
 
-def normalize_relative_path(
-    file_path,
-    root_folder
-):
+def normalize_relative_path(file_path, root_folder):
 
     relative_path = (
-        file_path.relative_to(
-            root_folder
-        )
+        file_path.relative_to(root_folder)
     )
 
     return relative_path.as_posix()
@@ -120,16 +107,10 @@ def normalize_relative_path(
 # Determine whether a path is excluded
 # --------------------------------------------------
 
-def is_excluded(
-    file_path,
-    root_folder,
-    exclusions
-):
+def is_excluded(file_path, root_folder, exclusions):
 
     relative_path = (
-        file_path.relative_to(
-            root_folder
-        )
+        file_path.relative_to(root_folder)
     )
 
     normalized_path = (
@@ -138,26 +119,18 @@ def is_excluded(
 
     for exclusion in exclusions:
 
-        exclusion_path = Path(
-            exclusion
-        )
+        exclusion_path = Path(exclusion)
 
         normalized_exclusion = (
             exclusion_path.as_posix()
         )
 
         # Exact match
-
-        if normalized_path == (
-            normalized_exclusion
-        ):
+        if normalized_path == (normalized_exclusion):
             return True
 
         # Directory match
-
-        if normalized_path.startswith(
-            normalized_exclusion + "/"
-        ):
+        if normalized_path.startswith(normalized_exclusion + "/"):
             return True
 
     return False
@@ -167,28 +140,16 @@ def is_excluded(
 # Calculate SHA-256 hash of a file
 # --------------------------------------------------
 
-def calculate_hash(
-    file_path
-):
+def calculate_hash(file_path):
 
     hasher = hashlib.sha256()
 
     try:
-        with open(
-            file_path,
-            "rb"
-        ) as file:
-            while chunk := file.read(
-                4096
-            ):
-                hasher.update(
-                    chunk
-                )
+        with open(file_path,"rb") as file:
+            while chunk := file.read(4096):
+                hasher.update(chunk)
 
-    except (
-        FileNotFoundError,
-        PermissionError
-    ) as error:
+    except (FileNotFoundError,PermissionError) as error:
         print(
             f"[ERROR] Could not read "
             f"{file_path}: {error}"
@@ -208,13 +169,9 @@ def calculate_hash(
 # Scan a directory
 # --------------------------------------------------
 
-def directory_scanner(
-    folder,
-    exclusions=None
-):
+def directory_scanner(folder, exclusions=None):
 
     if exclusions is None:
-
         exclusions = []
 
     logging.info(
@@ -246,16 +203,11 @@ def directory_scanner(
         directories_to_remove = []
 
         for directory in directories:
-            directory_path = (
-                root_path / directory
-            )
+            directory_path = (root_path / directory)
 
             # Skip symbolic-link directories
-
             if directory_path.is_symlink():
-                directories_to_remove.append(
-                    directory
-                )
+                directories_to_remove.append(directory)
 
                 symlinks_skipped += 1
 
@@ -273,9 +225,7 @@ def directory_scanner(
                 folder,
                 exclusions
             ):
-                directories_to_remove.append(
-                    directory
-                )
+                directories_to_remove.append(directory)
 
                 logging.info(
                     f"Skipping excluded "
@@ -285,20 +235,15 @@ def directory_scanner(
 
         # Remove directories before
         # os.walk descends into them
-
         for directory in directories_to_remove:
-            directories.remove(
-                directory
-            )
+            directories.remove(directory)
 
         # --------------------------------------------------
         # Process files
         # --------------------------------------------------
 
         for file_name in files:
-            file_path = (
-                root_path / file_name
-            )
+            file_path = (root_path / file_name)
 
             # --------------------------------------------------
             # Skip symbolic links
@@ -335,26 +280,17 @@ def directory_scanner(
             # Calculate hash
             # --------------------------------------------------
 
-            file_hash = calculate_hash(
-                file_path
-            )
+            file_hash = calculate_hash(file_path)
 
             normalized_path = (
-                normalize_relative_path(
-                    file_path,
-                    folder
-                )
+                normalize_relative_path(file_path, folder)
             )
 
             if file_hash is not None:
-                file_hashes[
-                    normalized_path
-                ] = file_hash
+                file_hashes[normalized_path] = file_hash
 
             else:
-                errors.append(
-                    normalized_path
-                )
+                errors.append(normalized_path)
 
     logging.info(
         f"Scan completed. "
@@ -377,23 +313,12 @@ def directory_scanner(
 # Atomically replace a file with retries
 # --------------------------------------------------
 
-def atomic_replace(
-    source,
-    destination,
-    retries=5,
-    delay=0.5
-):
+def atomic_replace(source, destination, retries = 5, delay = 0.5):
 
-    for attempt in range(
-        1,
-        retries + 1
-    ):
+    for attempt in range(1, retries + 1):
 
         try:
-            os.replace(
-                source,
-                destination
-            )
+            os.replace(source, destination)
 
             logging.info(
                 f"Atomic replacement "
@@ -417,12 +342,9 @@ def atomic_replace(
             )
 
             if attempt < retries:
-                time.sleep(
-                    delay
-                )
+                time.sleep(delay)
 
         except OSError as error:
-
             print(
                 f"[ERROR] Atomic replacement "
                 f"failed: {error}"
@@ -448,11 +370,7 @@ def atomic_replace(
 # Save baseline
 # --------------------------------------------------
 
-def save_baseline(
-    file_hashes,
-    baseline_path,
-    exclusions
-):
+def save_baseline(file_hashes, baseline_path, exclusions):
 
     logging.info(
         f"Saving baseline to: "
@@ -472,27 +390,16 @@ def save_baseline(
     )
 
     temporary_path = (
-        baseline_path.with_suffix(
-            baseline_path.suffix + ".tmp"
-        )
+        baseline_path.with_suffix(baseline_path.suffix + ".tmp")
     )
 
     try:
-
         # --------------------------------------------------
         # Write temporary baseline
         # --------------------------------------------------
 
-        with open(
-            temporary_path,
-            "w",
-            encoding="utf-8"
-        ) as file:
-            json.dump(
-                baseline_data,
-                file,
-                indent=4
-            )
+        with open(temporary_path, "w", encoding="utf-8") as file:
+            json.dump(baseline_data, file, indent=4)
             file.flush()
             os.fsync(
                 file.fileno()
@@ -507,17 +414,10 @@ def save_baseline(
         # Atomically replace baseline
         # --------------------------------------------------
 
-        if not atomic_replace(
-            temporary_path,
-            baseline_path
-        ):
+        if not atomic_replace(temporary_path, baseline_path):
             return False
 
-    except (
-        OSError,
-        TypeError,
-        ValueError
-    ) as error:
+    except (OSError, TypeError, ValueError) as error:
         print(
             f"[ERROR] Could not save baseline: "
             f"{error}"
@@ -533,9 +433,7 @@ def save_baseline(
         # --------------------------------------------------
 
         try:
-
             if temporary_path.exists():
-
                 temporary_path.unlink()
 
         except OSError as cleanup_error:
@@ -560,22 +458,13 @@ def save_baseline(
 # Validate SHA-256 hash
 # --------------------------------------------------
 
-def isValid_sha256(
-    value
-):
+def isValid_sha256(value):
 
-    if not isinstance(
-        value,
-        str
-    ):
-
+    if not isinstance(value, str):
         return False
 
     return bool(
-        re.fullmatch(
-            r"[0-9a-fA-F]{64}",
-            value
-        )
+        re.fullmatch(r"[0-9a-fA-F]{64}", value)
     )
 
 
@@ -583,18 +472,13 @@ def isValid_sha256(
 # Validate baseline structure
 # --------------------------------------------------
 
-def validate_baseline(
-    baseline_data
-):
+def validate_baseline(baseline_data):
 
     # --------------------------------------------------
     # Validate root object
     # --------------------------------------------------
 
-    if not isinstance(
-        baseline_data,
-        dict
-    ):
+    if not isinstance(baseline_data, dict):
 
         logging.error(
             "Baseline root is not "
@@ -607,20 +491,9 @@ def validate_baseline(
     # Validate version
     # --------------------------------------------------
 
-    version = baseline_data.get(
-        "version"
-    )
+    version = baseline_data.get("version")
 
-    if (
-        not isinstance(
-            version,
-            int
-        )
-        or isinstance(
-            version,
-            bool
-        )
-    ):
+    if (not isinstance(version, int)or isinstance(version, bool)):
 
         logging.error(
             "Baseline version is "
@@ -642,14 +515,9 @@ def validate_baseline(
     # Validate algorithm
     # --------------------------------------------------
 
-    algorithm = baseline_data.get(
-        "algorithm"
-    )
+    algorithm = baseline_data.get("algorithm")
 
-    if not isinstance(
-        algorithm,
-        str
-    ):
+    if not isinstance(algorithm, str):
 
         logging.error(
             "Baseline algorithm is "
@@ -671,14 +539,9 @@ def validate_baseline(
     # Validate exclusions
     # --------------------------------------------------
 
-    exclusions = baseline_data.get(
-        "exclusions"
-    )
+    exclusions = baseline_data.get("exclusions")
 
-    if not isinstance(
-        exclusions,
-        list
-    ):
+    if not isinstance(exclusions, list):
 
         logging.error(
             "Baseline exclusions "
@@ -689,10 +552,7 @@ def validate_baseline(
 
     for exclusion in exclusions:
 
-        if not isinstance(
-            exclusion,
-            str
-        ):
+        if not isinstance(exclusion, str):
 
             logging.error(
                 "Baseline contains a "
@@ -710,9 +570,7 @@ def validate_baseline(
 
             return False
 
-        if not validate_exclusion(
-            exclusion
-        ):
+        if not validate_exclusion(exclusion):
 
             logging.error(
                 f"Invalid baseline "
@@ -725,14 +583,9 @@ def validate_baseline(
     # Validate files object
     # --------------------------------------------------
 
-    files = baseline_data.get(
-        "files"
-    )
+    files = baseline_data.get("files")
 
-    if not isinstance(
-        files,
-        dict
-    ):
+    if not isinstance(files, dict):
 
         logging.error(
             "Baseline file data "
@@ -745,17 +598,10 @@ def validate_baseline(
     # Validate every file
     # --------------------------------------------------
 
-    for (
-        file_path,
-        file_hash
-    ) in files.items():
+    for (file_path, file_hash) in files.items():
 
         # File path must be a string
-
-        if not isinstance(
-            file_path,
-            str
-        ):
+        if not isinstance(file_path, str):
 
             logging.error(
                 "Baseline contains a "
@@ -765,7 +611,6 @@ def validate_baseline(
             return False
 
         # File path cannot be empty
-
         if not file_path:
 
             logging.error(
@@ -776,7 +621,6 @@ def validate_baseline(
             return False
 
         # Backslashes are not allowed
-
         if "\\" in file_path:
 
             logging.error(
@@ -788,10 +632,7 @@ def validate_baseline(
             return False
 
         # Absolute Unix-style path
-
-        if file_path.startswith(
-            "/"
-        ):
+        if file_path.startswith("/"):
 
             logging.error(
                 "Baseline contains "
@@ -802,11 +643,7 @@ def validate_baseline(
             return False
 
         # Absolute Windows-style path
-
-        if (
-            len(file_path) >= 2
-            and file_path[1] == ":"
-        ):
+        if (len(file_path) >= 2 and file_path[1] == ":"):
 
             logging.error(
                 "Baseline contains "
@@ -817,10 +654,7 @@ def validate_baseline(
             return False
 
         # Parent traversal
-
-        if ".." in Path(
-            file_path
-        ).parts:
+        if ".." in Path(file_path).parts:
 
             logging.error(
                 "Baseline contains "
@@ -831,10 +665,7 @@ def validate_baseline(
             return False
 
         # Validate hash
-
-        if not isValid_sha256(
-            file_hash
-        ):
+        if not isValid_sha256(file_hash):
 
             logging.error(
                 "Invalid SHA-256 hash "
@@ -850,9 +681,7 @@ def validate_baseline(
 # Load baseline
 # --------------------------------------------------
 
-def load_baseline(
-    baseline_path
-):
+def load_baseline(baseline_path):
 
     logging.info(
         f"Loading baseline: "
@@ -860,15 +689,8 @@ def load_baseline(
     )
 
     try:
-        with open(
-            baseline_path,
-            "r",
-            encoding="utf-8"
-        ) as file:
-
-            baseline_data = json.load(
-                file
-            )
+        with open(baseline_path, "r", encoding="utf-8") as file:
+            baseline_data = json.load(file)
 
     except FileNotFoundError:
         print(
@@ -910,10 +732,7 @@ def load_baseline(
         return None
 
     # Validate baseline
-
-    if not validate_baseline(
-        baseline_data
-    ):
+    if not validate_baseline(baseline_data):
         print(
             "[ERROR] Baseline "
             "validation failed."
@@ -937,38 +756,25 @@ def load_baseline(
 # Get baseline hash path
 # --------------------------------------------------
 
-def get_baseline_hash_path(
-    baseline_path
-):
-    return baseline_path.with_suffix(
-        ".sha256"
-    )
+def get_baseline_hash_path(baseline_path):
+    return baseline_path.with_suffix(".sha256")
 
 
 # --------------------------------------------------
 # Save baseline hash
 # --------------------------------------------------
 
-def save_baseline_hash(
-    baseline_path
-):
+def save_baseline_hash(baseline_path):
 
     baseline_hash_path = (
-        get_baseline_hash_path(
-            baseline_path
-        )
+        get_baseline_hash_path(baseline_path)
     )
 
     temporary_hash_path = (
-        baseline_hash_path.with_name(
-            baseline_hash_path.name
-            + ".tmp"
-        )
+        baseline_hash_path.with_name(baseline_hash_path.name + ".tmp")
     )
 
-    baseline_hash = calculate_hash(
-        baseline_path
-    )
+    baseline_hash = calculate_hash(baseline_path)
 
     if baseline_hash is None:
 
@@ -1006,14 +812,8 @@ def save_baseline_hash(
         # Create temporary hash file
         # --------------------------------------------------
 
-        with open(
-            temporary_hash_path,
-            "w",
-            encoding="utf-8"
-        ) as file:
-            file.write(
-                baseline_hash
-            )
+        with open(temporary_hash_path, "w", encoding="utf-8") as file:
+            file.write(baseline_hash)
             file.flush()
             os.fsync(
                 file.fileno()
@@ -1047,17 +847,10 @@ def save_baseline_hash(
         # Atomically replace hash
         # --------------------------------------------------
 
-        if not atomic_replace(
-            temporary_hash_path,
-            baseline_hash_path
-        ):
+        if not atomic_replace(temporary_hash_path,baseline_hash_path):
             return False
 
-    except (
-        OSError,
-        TypeError,
-        ValueError
-    ) as error:
+    except (OSError, TypeError, ValueError) as error:
         print(
             f"[ERROR] Could not save "
             f"baseline hash: {error}"
@@ -1074,7 +867,6 @@ def save_baseline_hash(
 
         try:
             if temporary_hash_path.exists():
-
                 temporary_hash_path.unlink()
 
         except OSError as cleanup_error:
@@ -1103,9 +895,7 @@ def verify_baseline_hash(
 ):
 
     baseline_hash_path = (
-        get_baseline_hash_path(
-            baseline_path
-        )
+        get_baseline_hash_path(baseline_path)
     )
 
     if not baseline_hash_path.exists():
@@ -1122,14 +912,8 @@ def verify_baseline_hash(
         return False
 
     try:
-        with open(
-            baseline_hash_path,
-            "r",
-            encoding="utf-8"
-        ) as file:
-            expected_hash = (
-                file.read().strip()
-            )
+        with open(baseline_hash_path, "r", encoding="utf-8") as file:
+            expected_hash = (file.read().strip())
 
     except OSError as error:
         print(
@@ -1145,10 +929,7 @@ def verify_baseline_hash(
         return False
 
     # Validate stored hash
-
-    if not isValid_sha256(
-        expected_hash
-    ):
+    if not isValid_sha256(expected_hash):
         print(
             "[ERROR] Baseline hash "
             "file is invalid."
@@ -1163,10 +944,7 @@ def verify_baseline_hash(
         return False
 
     # Calculate current hash
-
-    actual_hash = calculate_hash(
-        baseline_path
-    )
+    actual_hash = calculate_hash(baseline_path)
 
     if actual_hash is None:
         print(
@@ -1177,7 +955,6 @@ def verify_baseline_hash(
         return False
 
     # Compare hashes
-
     if actual_hash != expected_hash:
         print(
             "[ALERT] Baseline has "
@@ -1203,33 +980,19 @@ def verify_baseline_hash(
 # Compare exclusions
 # --------------------------------------------------
 
-def exclusions_match(
-    expected,
-    supplied
-):
-    expected_set = set(
-        expected
-    )
+def exclusions_match(expected, supplied):
+    expected_set = set(expected)
 
-    supplied_set = set(
-        supplied
-    )
+    supplied_set = set(supplied)
 
-    return (
-        expected_set
-        == supplied_set
-    )
+    return (expected_set == supplied_set)
 
 
 # --------------------------------------------------
 # Compare baseline and current files
 # --------------------------------------------------
 
-def compare_files(
-    baseline,
-    current,
-    scan_errors
-):
+def compare_files(baseline, current, scan_errors):
 
     results = {
         "unchanged": [],
@@ -1239,20 +1002,14 @@ def compare_files(
         "scan_error": []
     }
 
-    scan_error_set = set(
-        scan_errors
-    )
+    scan_error_set = set(scan_errors)
 
     # --------------------------------------------------
     # Record scan errors
     # --------------------------------------------------
 
     for file_path in scan_errors:
-        results[
-            "scan_error"
-        ].append(
-            file_path
-        )
+        results["scan_error"].append(file_path)
 
         logging.error(
             f"File could not be "
@@ -1263,29 +1020,15 @@ def compare_files(
     # Check current files
     # --------------------------------------------------
 
-    for (
-        file_path,
-        current_hash
-    ) in current.items():
+    for (file_path, current_hash) in current.items():
 
         if file_path in baseline:
 
-            if (
-                baseline[file_path]
-                == current_hash
-            ):
-                results[
-                    "unchanged"
-                ].append(
-                    file_path
-                )
+            if (baseline[file_path] == current_hash):
+                results["unchanged"].append(file_path)
 
             else:
-                results[
-                    "modified"
-                ].append(
-                    file_path
-                )
+                results["modified"].append(file_path)
 
                 logging.warning(
                     f"File modified: "
@@ -1293,11 +1036,7 @@ def compare_files(
                 )
 
         else:
-            results[
-                "new"
-            ].append(
-                file_path
-            )
+            results["new"].append(file_path)
 
             logging.warning(
                 f"New file detected: "
@@ -1317,11 +1056,7 @@ def compare_files(
             if file_path in scan_error_set:
                 continue
 
-            results[
-                "deleted"
-            ].append(
-                file_path
-            )
+            results["deleted"].append(file_path)
 
             logging.warning(
                 f"File deleted: "
@@ -1335,43 +1070,31 @@ def compare_files(
 # Display integrity results
 # --------------------------------------------------
 
-def display_results(
-    results
-):
+def display_results(results):
 
     print()
 
-    for file_path in results[
-        "unchanged"
-    ]:
+    for file_path in results["unchanged"]:
         print(
             f"[UNCHANGED] {file_path}"
         )
 
-    for file_path in results[
-        "modified"
-    ]:
+    for file_path in results["modified"]:
         print(
             f"[MODIFIED]  {file_path}"
         )
 
-    for file_path in results[
-        "new"
-    ]:
+    for file_path in results["new"]:
         print(
             f"[NEW]       {file_path}"
         )
 
-    for file_path in results[
-        "deleted"
-    ]:
+    for file_path in results["deleted"]:
         print(
             f"[DELETED]   {file_path}"
         )
 
-    for file_path in results[
-        "scan_error"
-    ]:
+    for file_path in results["scan_error"]:
         print(
             f"[SCAN ERROR] {file_path}"
         )
@@ -1409,9 +1132,7 @@ def display_results(
 # Display scan errors
 # --------------------------------------------------
 
-def display_scan_errors(
-    errors
-):
+def display_scan_errors(errors):
 
     if not errors:
         return
@@ -1435,11 +1156,7 @@ def display_scan_errors(
 # Initialize baseline
 # --------------------------------------------------
 
-def initialize(
-    monitored_folder,
-    baseline_path,
-    exclusions
-):
+def initialize(monitored_folder, baseline_path, exclusions):
 
     logging.info(
         f"Baseline creation started. "
@@ -1448,9 +1165,7 @@ def initialize(
         f"Exclusions={exclusions}"
     )
 
-    print(
-        "Creating baseline..."
-    )
+    print("Creating baseline...")
     print()
 
     # --------------------------------------------------
@@ -1500,14 +1215,7 @@ def initialize(
     # Scan directory
     # --------------------------------------------------
 
-    (
-        file_hashes,
-        scan_errors,
-        symlinks_skipped
-    ) = directory_scanner(
-        monitored_folder,
-        exclusions
-    )
+    (file_hashes,scan_errors,symlinks_skipped) = directory_scanner(monitored_folder, exclusions)
 
     # --------------------------------------------------
     # Abort if scan was incomplete
@@ -1527,9 +1235,7 @@ def initialize(
             "files could not be scanned."
         )
 
-        display_scan_errors(
-            scan_errors
-        )
+        display_scan_errors(scan_errors)
 
         return EXIT_ERROR
 
@@ -1537,11 +1243,7 @@ def initialize(
     # Save baseline
     # --------------------------------------------------
 
-    if not save_baseline(
-        file_hashes,
-        baseline_path,
-        exclusions
-    ):
+    if not save_baseline(file_hashes, baseline_path, exclusions):
         print(
             "[ERROR] Could not save baseline."
         )
@@ -1556,9 +1258,7 @@ def initialize(
     # Protect baseline
     # --------------------------------------------------
 
-    if not save_baseline_hash(
-        baseline_path
-    ):
+    if not save_baseline_hash(baseline_path):
         print(
             "[ERROR] Baseline "
             "protection failed."
@@ -1593,11 +1293,7 @@ def initialize(
 # Check integrity
 # --------------------------------------------------
 
-def check_integrity(
-    monitored_folder,
-    baseline_path,
-    exclusions
-):
+def check_integrity(monitored_folder, baseline_path, exclusions):
 
     logging.info(
         f"Integrity check started. "
@@ -1606,18 +1302,14 @@ def check_integrity(
         f"Exclusions={exclusions}"
     )
 
-    print(
-        "Checking file integrity..."
-    )
+    print("Checking file integrity...")
     print()
 
     # --------------------------------------------------
     # Validate exclusions
     # --------------------------------------------------
 
-    if not validate_exclusions(
-        exclusions
-    ):
+    if not validate_exclusions(exclusions):
         return EXIT_ERROR
 
     # --------------------------------------------------
@@ -1658,9 +1350,7 @@ def check_integrity(
     # Verify baseline integrity
     # --------------------------------------------------
 
-    if not verify_baseline_hash(
-        baseline_path
-    ):
+    if not verify_baseline_hash(baseline_path):
         print()
         print(
             "Integrity check aborted."
@@ -1672,9 +1362,7 @@ def check_integrity(
     # Load baseline
     # --------------------------------------------------
 
-    baseline_data = load_baseline(
-        baseline_path
-    )
+    baseline_data = load_baseline(baseline_path)
 
     if baseline_data is None:
         print()
@@ -1694,19 +1382,13 @@ def check_integrity(
 
         return EXIT_ERROR
 
-    baseline, baseline_exclusions = (
-        baseline_data
-    )
+    baseline, baseline_exclusions = (baseline_data)
 
     # --------------------------------------------------
     # Verify exclusion configuration
     # --------------------------------------------------
 
-    if not exclusions_match(
-        baseline_exclusions,
-        exclusions
-    ):
-
+    if not exclusions_match(baseline_exclusions, exclusions):
         print(
             "[ERROR] Exclusion "
             "configuration does not "
@@ -1734,36 +1416,21 @@ def check_integrity(
     # Scan current directory
     # --------------------------------------------------
 
-    (
-        current,
-        scan_errors,
-        symlinks_skipped
-    ) = directory_scanner(
-        monitored_folder,
-        exclusions
-    )
+    (current, scan_errors, symlinks_skipped) = directory_scanner(monitored_folder, exclusions)
 
     # --------------------------------------------------
     # Compare files
     # --------------------------------------------------
 
-    results = compare_files(
-        baseline,
-        current,
-        scan_errors
-    )
+    results = compare_files(baseline, current, scan_errors)
 
     # --------------------------------------------------
     # Display results
     # --------------------------------------------------
 
-    display_results(
-        results
-    )
+    display_results(results)
 
-    display_scan_errors(
-        scan_errors
-    )
+    display_scan_errors(scan_errors)
 
     print()
     print(
@@ -1802,11 +1469,7 @@ def check_integrity(
     # Integrity violation
     # --------------------------------------------------
 
-    if (
-        results["modified"]
-        or results["new"]
-        or results["deleted"]
-    ):
+    if (results["modified"] or results["new"] or results["deleted"]):
         return EXIT_INTEGRITY_FAILURE
 
     # --------------------------------------------------
@@ -1820,23 +1483,14 @@ def check_integrity(
 # Show status
 # --------------------------------------------------
 
-def show_status(
-    monitored_folder,
-    baseline_path
-):
+def show_status(monitored_folder, baseline_path):
 
     baseline_hash_path = (
-        get_baseline_hash_path(
-            baseline_path
-        )
+        get_baseline_hash_path(baseline_path)
     )
 
-    print(
-        "File Integrity Checker Status"
-    )
-    print(
-        "-----------------------------"
-    )
+    print("File Integrity Checker Status")
+    print("-----------------------------")
 
     # --------------------------------------------------
     # Monitored folder
@@ -1891,14 +1545,10 @@ def show_status(
     # --------------------------------------------------
 
     if baseline_path.exists():
-        baseline_data = load_baseline(
-            baseline_path
-        )
+        baseline_data = load_baseline(baseline_path)
 
         if baseline_data is not None:
-            baseline, exclusions = (
-                baseline_data
-            )
+            baseline, exclusions = (baseline_data)
 
             print(
                 f"Baseline files: "
@@ -1931,22 +1581,13 @@ def show_status(
     # Baseline integrity
     # --------------------------------------------------
 
-    if (
-        baseline_path.exists()
-        and baseline_hash_path.exists()
-    ):
+    if (baseline_path.exists() and baseline_hash_path.exists()):
 
-        if verify_baseline_hash(
-            baseline_path
-        ):
-            print(
-                "Baseline integrity: OK"
-            )
+        if verify_baseline_hash(baseline_path):
+            print("Baseline integrity: OK")
 
         else:
-            print(
-                "Baseline integrity: FAILED"
-            )
+            print("Baseline integrity: FAILED")
 
     else:
         print(
