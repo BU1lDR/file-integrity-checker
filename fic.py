@@ -302,10 +302,58 @@ def save_baseline(file_hashes, baseline_path, exclusions):
         exist_ok = True
     )
 
-    with open(baseline_path, "w") as file:
-        json.dump(baseline_data, file, indent = 4)
+    temporary_path = (
+        baseline_path.with_suffix(
+            baseline_path.suffix + ".tmp"
+        )
+    )
+
+    try:
+        #Writing the new baseline to a temporary file
+        with open(temporary_path, "w", encoding  = "utf-8") as file:
+            json.dump(baseline_data, file, indent = 4)
+            file.flush()
+            os.fsync(file.fileno())
+
+            #automatically replace the old baseline
+            os.replace(temporary_path, baseline_path)
+
+    except OSError as error:
+
+        logging.error(f"Could not save baseline: {error}")
+
+        #Removing temporary files(if they remain)
+        try:
+            if temporary_path.exists():
+                temporary_path.unlink()
+
+        except OSError as cleanup_error:
+
+            logging.error(
+                f"Could not remove temporary baseline file: {cleanup_error}"
+            )
+
+        return False
+
+    except (TypeError, ValueError) as error:
+
+        logging.error(f"Could not serialize baseline: {error}")
+
+        try:
+            if temporary_path.exists():
+                temporary_path.unlink()
+
+        except OSError as cleanup_error:
+
+            logging.error(
+                f"Could not remove temporary baseline file: {cleanup_error}"
+                )
+
+        return False
 
     logging.info(f"Baseline saved successfully: {baseline_path}")
+
+    return True
 
 
 
