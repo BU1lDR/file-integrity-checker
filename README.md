@@ -1,108 +1,156 @@
 # 🛡️ File Integrity Checker (FIC)
 
-> A lightweight, robust, and secure Python-based **File Integrity Monitoring (FIM)** utility designed to detect unauthorized file changes, deletions, and additions using **SHA-256 cryptographic hashing**.
+> **Lightweight, cryptographically secure file monitoring for Python.**
+
+[![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Security: SHA-256](https://img.shields.io/badge/Security-SHA--256-green.svg)](https://en.wikipedia.org/wiki/SHA-2)
+[![Platform: Cross--Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey.svg)](#)
 
 ---
 
-## 🌟 Key Features
+## 📌 Overview
 
-* **🔒 Cryptographic Integrity**: Computes unique SHA-256 checksums for every monitored file.
-* **🛡️ Self-Defending Baseline**: Generates a `.sha256` sidecar file to detect unauthorized tampering with the baseline manifest itself.
-* **⚡ Atomic File Operations**: Prevents corruption during baseline writes using safe temporary files and flush/fsync routines.
-* **🚫 Flexible Exclusion Rules**: Supports directory and file exclusions with path-traversal (`..`) and absolute path safety validation.
-* **📂 Symlink & Error Resilience**: Automatically bypasses symbolic links to avoid infinite recursion loops and safely reports unreadable files.
-* **📊 Visual Console & File Logging**: Outputs clear status indicators (`[UNCHANGED]`, `[MODIFIED]`, `[NEW]`, `[DELETED]`) and maintains log records.
+**File Integrity Checker (FIC)** is a CLI security utility designed to safeguard critical files from unauthorized tampering, silent corruption, and unmonitored updates [cite: 1]. 
 
----
+By creating a cryptographic snapshot (baseline) of your target directory using **SHA-256 digests**, FIC lets you detect file modifications, additions, and deletions instantly [cite: 1].
 
-## Core Concepts & Architecture
-
-```
-                    ┌─────────────────┐
-                    │ Monitored Files │
-                    └────────┬────────┘
-                             │
-                         SHA-256
-                             │
-                             ▼
-                    ┌─────────────────┐
-                    │    Baseline     │
-                    │    baseline.json│
-                    └────────┬────────┘
-                             │
-                      Integrity Hash
-                             │
-                             ▼
-                    ┌─────────────────┐
-                    │ Baseline Hash   │
-                    └─────────────────┘
+```text
+┌──────────────────┐      📸 Snapshot      ┌──────────────────┐
+│ Monitored Folder │ ───────────────────> │  baseline.json   │
+└──────────────────┘                      └──────────────────┘
+         │                                         │
+         │  🔍 Compare Current vs Baseline         │
+         └─────────────────────────────────────────┘
+                               │
+                               ▼
+            🚨 [MODIFIED]  ✨ [NEW]  ❌ [DELETED]
 ```
 
-### 1. SHA-256 Cryptographic Hashing
-Every file inside the monitored directory is read in binary chunks (`4096 bytes`) to generate a unique 64-character hexadecimal digest. If even a single byte inside a file changes, its resulting hash will completely change.
+---
 
-### 2. Self-Verifying Baseline Security
-To prevent attackers from modifying the `baseline.json` file to mask unauthorized changes, FIC generates a secondary signature file (`baseline.json.sha256`). Prior to every integrity scan, FIC verifies that the baseline file matches its stored hash.
+## ✨ Features
 
-### 3. Atomic Replacement
-To guarantee zero corruption during write operations (e.g., power failure or process interruption), baselines are written to a temporary `.tmp` file, flushed to disk (`fsync`), and atomically swapped using `os.replace()`.
-
-### 4. Path Normalization & Security Rules
-All monitored paths are converted into Unix-style relative paths (`/`). FIC enforces security constraints by blocking absolute paths and parent directory traversal attempts (`..`).
+| Feature | Description |
+| :--- | :--- |
+| **🔒 Cryptographic Precision** | Employs collision-resistant **SHA-256** hashing for absolute data verification [cite: 1]. |
+| **🛡️ Self-Protecting Baseline** | Generates a standalone `.sha256` signature to detect local baseline tampering. |
+| **⚡ Atomic Write Safety** | Uses `os.replace` with retry backoff to prevent baseline corruption during unexpected interruptions. |
+| **🎯 Granular Filtering** | Excludes specific files or nested directories using normalized relative path rules. |
+| **🔗 Symlink Defense** | Bypasses symbolic links automatically to block infinite loops and out-of-scope traversal. |
+| **📊 Clear Reporting** | Displays formatted terminal output while logging detailed events to disk. |
 
 ---
 
-## Getting Started
+## ⚙️ How It Works
 
-### Prerequisites
-* **Python 3.8+** (Standard Library only; no external package dependencies required)
+FIC executes in **four main stages**:
 
-### Configuration (`config.json`)
-Create a `config.json` file in the root directory:
+```text
+  1. LOAD CONFIG       2. DIRECTORY SCAN       3. BASELINE / CHECK       4. VERIFY & REPORT
+┌─────────────────┐   ┌───────────────────┐   ┌────────────────────┐   ┌────────────────────┐
+│ Read config.json│ ─>│ Traverse directory│ ─>│ Hash files (4KB)   │ ─>│ Output summary to  │
+│ & validate keys │   │ & check exclusions│   │ Save/Verify snapshot│   │ stdout & fic.log   │
+└─────────────────┘   └───────────────────┘   └────────────────────┘   └────────────────────┘
+```
+
+1. **Configuration**: Parses and validates `config.json` parameters (`monitored_folder`, `baseline_path`, `log_path`, `exclusions`).
+2. **Directory Walk**: Scans target folders recursively while honoring exclusion lists and skipping symlinks.
+3. **Hashing Engine**: Computes SHA-256 digests in efficient 4 KB chunks.
+4. **Integrity Match**:
+   - **`init`**: Writes `baseline.json` and locks it with a `<baseline>.sha256` digest.
+   - **`check`**: Validates `baseline.json` health and flags `[MODIFIED]`, `[NEW]`, `[DELETED]`, or `[SCAN ERROR]` files.
+
+---
+
+## 📋 Requirements
+
+- **Python**: `3.8` or higher
+- **Dependencies**: **Zero third-party libraries required!** Built entirely on standard library modules (`argparse`, `hashlib`, `json`, `logging`, `os`, `re`, `sys`, `time`, `pathlib`).
+
+---
+
+## 🚀 Quick Start & Installation
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/your-username/file-integrity-checker.git
+cd file-integrity-checker
+
+# 2. Verify Python version
+python3 --version
+```
+
+---
+
+## 🔧 Configuration
+
+Setup your monitoring scope in **`config.json`**:
 
 ```json
 {
-  "monitored_folder": "./data",
-  "baseline_path": "./baseline.json",
-  "log_path": "./logs/fic.log",
-  "exclusions": [
-    ".git",
-    "logs",
-    "temp.txt"
-  ]
+    "monitored_folder": "target_folder",
+    "baseline_path": "baseline.json",
+    "log_path": "logs/fic.log",
+    "exclusions": [
+        "temp",
+        "cache/logs",
+        "ignored_file.txt"
+    ]
 }
 ```
 
+> ⚠️ **Security Rule**: Relative paths only for `exclusions`. Absolute paths and parent traversal patterns (`..`) are strictly prohibited and rejected during config parsing.
+
 ---
 
-## 💻 Usage & Commands
+## 💻 Usage
 
-### 1. Initialize Baseline (`init`)
-Scans the monitored directory and creates a new cryptographic baseline manifest.
+FIC features three straightforward commands:
+
+### 📸 1. Create a Baseline (`init`)
+Creates a fresh snapshot of your monitored directory.
 
 ```bash
 python fic.py init
 ```
-*Custom Overrides:*
+
+*CLI Overrides:*
 ```bash
-python fic.py init --folder ./my_folder --baseline ./my_baseline.json --exclude cache --exclude logs
+python fic.py init --folder ./target_folder --baseline ./baseline.json --exclude temp
 ```
 
-### 2. Run Integrity Check (`check`)
-Compares current files against the stored baseline and reports modifications or drift.
+---
+
+### 🔍 2. Verify File Integrity (`check`)
+Compares current files against your saved baseline.
 
 ```bash
 python fic.py check
 ```
 
-**Sample Output:**
+---
+
+### 🩺 3. Inspect System Status (`status`)
+Verifies health of monitored folders, baseline files, and signature digests.
+
+```bash
+python fic.py status
+```
+
+---
+
+## 🖥️ Example Output
+
+### Running `python fic.py check` (Changes Detected)
+
 ```text
 Checking file integrity...
 
-[UNCHANGED] document.pdf
-[MODIFIED]  config/settings.env
-[NEW]       malicious_script.sh
-[DELETED]   important_data.csv
+[UNCHANGED] config.py
+[MODIFIED]  data/database.sqlite
+[NEW]       temp_notes.txt
+[DELETED]   old_config.json
 
 Integrity Check Summary
 -----------------------
@@ -111,21 +159,88 @@ Modified:    1
 New:         1
 Deleted:     1
 Scan errors: 0
+
+Symbolic links skipped: 0
 ```
 
-### 3. Check System Status (`status`)
-Displays the status of the monitored folder, baseline manifest, sidecar hash integrity, and loaded exclusions.
+---
 
-```bash
-python fic.py status
+### Running `python fic.py status`
+
+```text
+File Integrity Checker Status
+-----------------------------
+Monitored folder: OK (target_folder)
+Baseline: OK (baseline.json)
+Baseline hash: OK (baseline.sha256)
+Baseline files: 4
+Exclusions: 2
+  - temp
+  - cache/logs
+Baseline integrity: OK
 ```
 
 ---
 
 ## 🚦 Exit Codes
 
-| Exit Code | Constant | Meaning |
-| :---: | :--- | :--- |
-| **`0`** | `EXIT_SUCCESS` | Integrity verified / Command executed successfully. |
-| **`1`** | `EXIT_INTEGRITY_FAILURE` | File modification, addition, or deletion detected. |
-| **`2`** | `EXIT_ERROR` | System error, missing folder, or baseline verification failure. |
+Integrate FIC seamlessly into **CI/CD pipelines**, **cron jobs**, or **automation scripts**:
+
+| Exit Code | Symbol | Status | Meaning |
+| :---: | :---: | :--- | :--- |
+| **`0`** | ✅ | `EXIT_SUCCESS` | Execution successful. No file integrity violations found during `check`. |
+| **`1`** | 🚨 | `EXIT_INTEGRITY_FAILURE` | Integrity check detected modified, new, or deleted files. |
+| **`2`** | ❌ | `EXIT_ERROR` | Command failed due to invalid configuration, missing files, or baseline tampering. |
+
+---
+
+## 🔐 Security Considerations
+
+- **Tamper-Proof Baselines**: FIC pairs `baseline.json` with a separate `.sha256` signature digest file. If a bad actor alters the baseline directly, execution immediately halts with an integrity error.
+- **Traversal Defense**: All relative paths are normalized using standard POSIX forward slashes (`/`), preventing platform-specific path manipulation.
+- **Safe Persistence**: Writes data to a temporary file (`.tmp`) before calling `os.replace` to protect against partial baseline writes during crashes or file locks.
+
+---
+
+## 🧪 Running Tests
+
+To run the unit test suite:
+
+```bash
+python -m unittest discover -s tests
+```
+
+---
+
+## 📁 Project Structure
+
+```text
+file-integrity-checker/
+│
+├── 📄 config.json          # Default configuration file
+├── 🐍 fic.py               # Main CLI tool & core scanner engine
+├── 📘 README.md            # Project documentation
+│
+└── 🧪 tests/               # Unit testing modules
+```
+
+---
+
+## ⚠️ Limitations
+
+- **Polling-Based Monitor**: FIC performs point-in-time checks when executed rather than real-time OS event listening (`inotify`/`watchdog`).
+- **Content Focus**: Tracks SHA-256 hash changes in file contents [cite: 1]. Metadata attributes (e.g., `chmod` permissions, timestamps) are not recorded.
+
+---
+
+## 🔮 Future Roadmap
+
+- [ ] **🔔 Real-Time Alerts**: Discord / Slack webhook integration on integrity violations.
+- [ ] **🔑 Asymmetric Signing**: Ed25519 baseline signing for enhanced security environments.
+- [ ] **⚡ Multithreaded Scans**: Parallelized hashing engine for ultra-large file sets.
+
+---
+
+## 📄 License
+
+Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for details.
