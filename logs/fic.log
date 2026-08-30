@@ -111,3 +111,15 @@
 2026-08-30 14:30:52,988 [INFO] Atomic replacement succeeded on attempt 1.
 2026-08-30 14:30:52,988 [INFO] Baseline hash saved: baseline\baseline.sha256
 2026-08-30 14:30:52,988 [INFO] Baseline created for 3 files.
+2026-08-30 15:06:52,340 [INFO] Baseline creation started. Folder=test_data, Baseline=baseline\baseline.json, Exclusions=[]
+2026-08-30 15:06:52,340 [INFO] Scanning directory: test_data
+2026-08-30 15:06:52,341 [INFO] Exclusions: []
+2026-08-30 15:06:52,342 [INFO] Scan completed. Files successfully hashed: 3, Symlinks skipped: 0, Errors: 0
+2026-08-30 15:06:52,342 [INFO] Saving baseline to: baseline\baseline.json
+2026-08-30 15:06:52,344 [INFO] Temporary baseline created: baseline\baseline.json.tmp
+2026-08-30 15:06:52,344 [INFO] Atomic replacement succeeded on attempt 1.
+2026-08-30 15:06:52,344 [INFO] Baseline saved successfully: baseline\baseline.json
+2026-08-30 15:06:52,346 [INFO] Temporary baseline hash created: baseline\baseline.sha256.tmp
+2026-08-30 15:06:52,346 [INFO] Atomic replacement succeeded on attempt 1.
+2026-08-30 15:06:52,346 [INFO] Baseline hash saved: baseline\baseline.sha256
+2026-08-30 15:06:52,346 [INFO] Baseline created for 3 files.
