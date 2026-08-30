@@ -35,6 +35,19 @@ class TestCalculateHash(unittest.TestCase):
             expected_hash
         )
 
+    def test_calculate_hash_file_not_found(self):
+
+        missing_file = Path(
+            "this_file_does_not_exist.txt"
+        )
+
+        result = fic.calculate_hash(
+            missing_file
+        )
+
+        self.assertIsNone(
+            result
+        )
 
 if __name__ == "__main__":
 
