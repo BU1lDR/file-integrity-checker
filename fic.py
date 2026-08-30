@@ -18,6 +18,7 @@ LOG_PATH = Path("logs/fic.log")
 #---------------------------------------------------
 # Defining exit codes
 # --------------------------------------------------
+
 EXIT_SUCCESS = 0
 EXIT_INTEGRITY_FAILURE = 1
 EXIT_ERROR = 2
@@ -54,9 +55,11 @@ def validate_exclusion(exclusion):
 
     path = Path(exclusion)
 
+    #Absolute-paths not allowed
     if path.is_absolute():
         return False
-    
+
+    #Parent-directory traversal not allowed
     for part in path.parts:
 
         if part == "..":
@@ -105,40 +108,23 @@ def normalize_relative_path(file_path,root_folder):
 # Determination of whether a path is excluded or not?
 # --------------------------------------------------
 
-def is_excluded(
-    file_path,
-    root_folder,
-    exclusions
-):
+def is_excluded(file_path, root_folder, exclusions):
 
-    relative_path = (
-        file_path.relative_to(
-            root_folder
-        )
-    )
+    relative_path = (file_path.relative_to(root_folder))
 
-    normalized_path = (
-        relative_path.as_posix()
-    )
+    normalized_path = (relative_path.as_posix())
+
 
     for exclusion in exclusions:
 
-        exclusion_path = (
-            Path(exclusion)
-        )
+        exclusion_path = (Path(exclusion))
 
         #EXACT MATCH
-        if normalized_path == (
-            exclusion_path.as_posix()
-        ):
-
+        if normalized_path == (exclusion_path.as_posix()):
             return True
 
         #DIRECTORY MATCH
-        if normalized_path.startswith(
-            exclusion_path.as_posix() + "/"
-        ):
-
+        if normalized_path.startswith(exclusion_path.as_posix() + "/"):
             return True
 
 
@@ -151,6 +137,7 @@ def is_excluded(
 # --------------------------------------------------
 
 def calculate_hash(file_path):
+
     hasher = hashlib.sha256()
 
     try:
@@ -656,7 +643,7 @@ def verify_baseline_hash(baseline_path):
 
 
 # --------------------------------------------------
-# Config comparison
+# Compare exclusions
 # --------------------------------------------------
 
 def exclusions_match(expected,supplied):
@@ -798,6 +785,10 @@ def initialize(monitored_folder, baseline_path, exclusions):
 
     print("Creating baseline...")
     print()
+
+    #Validate exclusions
+    if not validate_exclusions(exclusions):
+        return EXIT_ERROR
 
     #Verify monitored folder
     if not monitored_folder.exists():
@@ -974,7 +965,7 @@ def check_integrity(monitored_folder, baseline_path, exclusions):
         return EXIT_ERROR
 
     #Scan current directory
-    current, scan_errors, symlinks_skipped = directory_scanner(monitored_folder, exclusions)
+    (current, scan_errors, symlinks_skipped) = directory_scanner(monitored_folder, exclusions)
 
     #Compare files
     results = compare_files(baseline, current, scan_errors)
@@ -983,6 +974,7 @@ def check_integrity(monitored_folder, baseline_path, exclusions):
     display_results(results)
     display_scan_errors(scan_errors)
 
+    print()
     print(
         f"Symbolic links skipped: "
         f"{symlinks_skipped}"
@@ -995,7 +987,8 @@ def check_integrity(monitored_folder, baseline_path, exclusions):
         f"Modified={len(results['modified'])}, "
         f"New={len(results['new'])}, "
         f"Deleted={len(results['deleted'])}, "
-        f"ScanErrors={len(results['scan_error'])}"
+        f"ScanErrors={len(results['scan_error'])}, "
+        f"SymlinksSkipped={symlinks_skipped}"
     )
 
 
@@ -1027,7 +1020,7 @@ def show_status(monitored_folder, baseline_path):
     print("File Integrity Checker Status")
     print("-----------------------------")
 
-    #FIRST STATUS CHECK
+    #FIRST STATUS CHECK(MONITORED FOLDER)
     if monitored_folder.exists():
         print(
             f"Monitored folder: OK "
@@ -1225,7 +1218,6 @@ def create_parser():
 def main():
 
     setup_logging()
-
 
     parser = create_parser()
 
