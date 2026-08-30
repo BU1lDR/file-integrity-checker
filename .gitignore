@@ -7,14 +7,12 @@
 *$py.class
 
 # Distribution / packaging
-
 build/
 dist/
 *.egg-info/
 .eggs/
 
 # Test / coverage
-
 .pytest_cache/
 .coverage
 .coverage.*
@@ -39,7 +37,6 @@ ENV/
 # ============================================================
 
 # Generated baseline manifests and integrity hashes
-
 baseline/
 baselines/
 *.baseline
@@ -47,7 +44,6 @@ baselines/
 *.sha256
 
 # Generated runtime logs
-
 logs/
 *.log
 
@@ -56,12 +52,10 @@ logs/
 # ============================================================
 
 # Local-only configuration overrides
-
 config.local.json
 config.*.local.json
 
 # Environment variables / secrets
-
 .env
 .env.*
 !.env.example
