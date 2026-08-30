@@ -233,6 +233,10 @@ file-integrity-checker/
 
 ---
 
+## Project URL
+
+https://roadmap.sh/projects/file-integrity-checker
+
 ## 📄 License
 
 Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for details.
