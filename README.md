@@ -16,7 +16,7 @@
 By creating a cryptographic snapshot (baseline) of your target directory using **SHA-256 digests**, FIC lets you detect file modifications, additions, and deletions instantly [cite: 1].
 
 ```text
-┌──────────────────┐      📸 Snapshot      ┌──────────────────┐
+┌──────────────────┐      📸 Snapshot     ┌──────────────────┐
 │ Monitored Folder │ ───────────────────> │  baseline.json   │
 └──────────────────┘                      └──────────────────┘
          │                                         │
@@ -48,10 +48,10 @@ FIC executes in **four main stages**:
 
 ```text
   1. LOAD CONFIG       2. DIRECTORY SCAN       3. BASELINE / CHECK       4. VERIFY & REPORT
-┌─────────────────┐   ┌───────────────────┐   ┌────────────────────┐   ┌────────────────────┐
-│ Read config.json│ ─>│ Traverse directory│ ─>│ Hash files (4KB)   │ ─>│ Output summary to  │
-│ & validate keys │   │ & check exclusions│   │ Save/Verify snapshot│   │ stdout & fic.log   │
-└─────────────────┘   └───────────────────┘   └────────────────────┘   └────────────────────┘
+┌──────────────────┐   ┌────────────────────┐   ┌──────────────────────┐   ┌───────────────────┐
+│ Read config.json │ ─>│ Traverse directory │ ─>│ Hash files (4KB)     │ ─>│ Output summary to │
+│ & validate keys  │   │ & check exclusions │   │ Save/Verify snapshot │   │ stdout & fic.log  │
+└──────────────────┘   └────────────────────┘   └──────────────────────┘   └───────────────────┘
 ```
 
 1. **Configuration**: Parses and validates `config.json` parameters (`monitored_folder`, `baseline_path`, `log_path`, `exclusions`).
