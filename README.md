@@ -15,7 +15,7 @@
 
 ---
 
-## 🧠 Core Concepts & Architecture
+## Core Concepts & Architecture
 
 ```
    ┌──────────────────┐
@@ -43,7 +43,7 @@ All monitored paths are converted into Unix-style relative paths (`/`). FIC enfo
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 * **Python 3.8+** (Standard Library only; no external package dependencies required)
