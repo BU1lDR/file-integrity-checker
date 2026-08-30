@@ -339,12 +339,39 @@ def validate_exclusion(exclusion):
 
 def validate_exclusions(exclusions):
 
+    if not isinstance(exclusions, list):
+        print("[ERROR] Exclusions must be a list.")
+
+        logging.error(
+            "Exclusions must be a list."
+        )
+
+        return False
+
+    seen = set()
+
     for exclusion in exclusions:
+
+        if exclusion in seen:
+            print(
+                f"[ERROR] Duplicate exclusion: "
+                f"{exclusion}"
+            )
+
+            logging.error(
+                f"Duplicate exclusion: "
+                f"{exclusion}"
+            )
+
+            return False
+
+        seen.add(exclusion)
 
         if not validate_exclusion(exclusion):
             print(
                 f"[ERROR] Invalid "
-                f"exclusion: {exclusion}"
+                f"exclusion: "
+                f"{exclusion}"
             )
 
             logging.error(
@@ -813,6 +840,19 @@ def validate_baseline(baseline_data):
         logging.error(
             "Baseline exclusions "
             "are not a list."
+        )
+
+        return False
+
+    # --------------------------------------------------
+    # Reject duplicate exclusions
+    # --------------------------------------------------
+
+    if len(exclusions) != len(set(exclusions)):
+
+        logging.error(
+            "Baseline contains "
+            "duplicate exclusions."
         )
 
         return False
@@ -1291,7 +1331,7 @@ def compare_files(baseline, current, scan_errors):
 
         if file_path in baseline:
 
-            if (baseline[file_path] == current_hash):
+            if (baseline[file_path].lower() == current_hash.lower()):
                 results["unchanged"].append(file_path)
 
             else:
@@ -2028,7 +2068,7 @@ def main():
         f"Command started: "
         f"{args.command}"
     )
-    
+
     # --------------------------------------------------
     # Resolve monitored folder
     # --------------------------------------------------
