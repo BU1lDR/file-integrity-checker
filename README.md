@@ -9,6 +9,12 @@
 
 ---
 
+## Project URL
+
+https://roadmap.sh/projects/file-integrity-checker
+
+---
+
 ## 📌 Overview
 
 **File Integrity Checker (FIC)** is a CLI security utility designed to safeguard critical files from unauthorized tampering, silent corruption, and unmonitored updates [cite: 1]. 
@@ -232,10 +238,6 @@ file-integrity-checker/
 - **Content Focus**: Tracks SHA-256 hash changes in file contents [cite: 1]. Metadata attributes (e.g., `chmod` permissions, timestamps) are not recorded.
 
 ---
-
-## Project URL
-
-https://roadmap.sh/projects/file-integrity-checker
 
 ## 📄 License
 
