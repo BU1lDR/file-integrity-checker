@@ -108,7 +108,7 @@ Setup your monitoring scope in **`config.json`**:
 
 FIC features three straightforward commands:
 
-### 📸 1. Create a Baseline (`init`)
+### 1. Create a Baseline (`init`)
 Creates a fresh snapshot of your monitored directory.
 
 ```bash
@@ -122,7 +122,7 @@ python fic.py init --folder ./target_folder --baseline ./baseline.json --exclude
 
 ---
 
-### 🔍 2. Verify File Integrity (`check`)
+### 2. Verify File Integrity (`check`)
 Compares current files against your saved baseline.
 
 ```bash
@@ -131,7 +131,7 @@ python fic.py check
 
 ---
 
-### 🩺 3. Inspect System Status (`status`)
+### 3. Inspect System Status (`status`)
 Verifies health of monitored folders, baseline files, and signature digests.
 
 ```bash
@@ -140,7 +140,7 @@ python fic.py status
 
 ---
 
-## 🖥️ Example Output
+## Example Output
 
 ### Running `python fic.py check` (Changes Detected)
 
@@ -217,11 +217,11 @@ python -m unittest discover -s tests
 ```text
 file-integrity-checker/
 │
-├── 📄 config.json          # Default configuration file
-├── 🐍 fic.py               # Main CLI tool & core scanner engine
-├── 📘 README.md            # Project documentation
+├──  config.json          # Default configuration file
+├──  fic.py               # Main CLI tool & core scanner engine
+├──  README.md            # Project documentation
 │
-└── 🧪 tests/               # Unit testing modules
+└──  tests/               # Unit testing modules
 ```
 
 ---
@@ -230,14 +230,6 @@ file-integrity-checker/
 
 - **Polling-Based Monitor**: FIC performs point-in-time checks when executed rather than real-time OS event listening (`inotify`/`watchdog`).
 - **Content Focus**: Tracks SHA-256 hash changes in file contents [cite: 1]. Metadata attributes (e.g., `chmod` permissions, timestamps) are not recorded.
-
----
-
-## 🔮 Future Roadmap
-
-- [ ] **🔔 Real-Time Alerts**: Discord / Slack webhook integration on integrity violations.
-- [ ] **🔑 Asymmetric Signing**: Ed25519 baseline signing for enhanced security environments.
-- [ ] **⚡ Multithreaded Scans**: Parallelized hashing engine for ultra-large file sets.
 
 ---
 
