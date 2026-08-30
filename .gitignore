@@ -1,19 +1,107 @@
-__pycache__/
+# ============================================================
+# Python
+# ============================================================
+
+**pycache**/
 *.py[cod]
-*.pyo
+*$py.class
+
+# Distribution / packaging
+
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Test / coverage
 
 .pytest_cache/
 .coverage
+.coverage.*
 htmlcov/
+.tox/
+.nox/
+.pyre/
+.mypy_cache/
+.ruff_cache/
+
+# ============================================================
+# Virtual environments
+# ============================================================
 
 .venv/
 venv/
 env/
+ENV/
+
+# ============================================================
+# File Integrity Checker - Generated Runtime Data
+# ============================================================
+
+# Generated baseline manifests and integrity hashes
+
+baseline/
+baselines/
+*.baseline
+*.baseline.json
+*.sha256
+
+# Generated runtime logs
+
+logs/
+*.log
+
+# ============================================================
+# Local configuration / secrets
+# ============================================================
+
+# Local-only configuration overrides
+
+config.local.json
+config.*.local.json
+
+# Environment variables / secrets
+
+.env
+.env.*
+!.env.example
+
+# ============================================================
+# IDE / Editor
+# ============================================================
 
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
-*.log
+# ============================================================
+# Operating System
+# ============================================================
 
 .DS_Store
+.DS_Store?
 Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ============================================================
+# Temporary files
+# ============================================================
+
+*.tmp
+*.temp
+*.bak
+*.old
+*.orig
+*.rej
+
+# ============================================================
+# Project-specific temporary data
+# ============================================================
+
+temp/
+tmp/
+.cache/
+EOF
