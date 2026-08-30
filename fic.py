@@ -15,10 +15,6 @@ from pathlib import Path
 
 CONFIG_PATH = Path("config.json")
 
-MONITORED_FOLDER = Path("test_data")
-BASELINE_PATH = Path("baseline/baseline.json")
-LOG_PATH = Path("logs/fic.log")
-
 
 # --------------------------------------------------
 # Exit codes
@@ -289,19 +285,32 @@ def build_config(config):
 # Configure logging
 # --------------------------------------------------
 
-def setup_logging():
+def setup_logging(log_path):
 
-    LOG_PATH.parent.mkdir(
-        parents=True,
-        exist_ok=True
-    )
+    try:
+        log_path.parent.mkdir(
+            parents = True,
+            exist_ok = True
+        )
 
-    logging.basicConfig(
-        filename=LOG_PATH,
-        level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(message)s"
-    )
+        logging.basicConfig(
+            filename = log_path,
+            level = logging.INFO,
+            format = ("%(asctime)s [%(levelname)s] %(message)s"
+            ),
+            force = True
+        )
+        logging.info("Logging initialized successfully")
 
+        return True
+    
+    except OSError as error:
+        print(
+            f"[ERROR] Could not configure logging: {error}"
+        )
+
+        return False
+    
 
 # --------------------------------------------------
 # Validate an exclusion path
@@ -1976,19 +1985,12 @@ def create_parser():
 def main():
 
     # --------------------------------------------------
-    # Configure logging
-    # --------------------------------------------------
-
-    setup_logging()
-
-    # --------------------------------------------------
     # Parse command-line arguments
     # --------------------------------------------------
 
     parser = create_parser()
 
     args = parser.parse_args()
-
 
     # --------------------------------------------------
     # No command
@@ -2014,6 +2016,19 @@ def main():
 
     application_config = build_config(config)
 
+    # --------------------------------------------------
+    # Configure logging
+    # --------------------------------------------------
+
+    if not setup_logging(
+        application_config["log_path"]):
+        return EXIT_ERROR
+
+    logging.info(
+        f"Command started: "
+        f"{args.command}"
+    )
+    
     # --------------------------------------------------
     # Resolve monitored folder
     # --------------------------------------------------

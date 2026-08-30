@@ -2,7 +2,5 @@
     "monitored_folder": "test_data",
     "baseline_path": "baseline/baseline.json",
     "log_path": "logs/fic.log",
-    "exclusions": [
-        "cache"
-    ]
+    "exclusions": []
 }
