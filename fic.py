@@ -607,6 +607,8 @@ def save_baseline_hash(baseline_path):
 
     baseline_hash_path = (get_baseline_hash_path(baseline_path))
 
+    temporary_hash_path = (baseline_hash_path.with_suffix(baseline_hash_path.suffix + ".tmp"))
+
     baseline_hash = calculate_hash(baseline_path)
 
     if baseline_hash is None:
@@ -620,12 +622,27 @@ def save_baseline_hash(baseline_path):
             exist_ok = True
         )
 
+        #Writing hash to temporary files
         with open(baseline_hash_path, "w") as file:
             file.write(baseline_hash)
+            file.flush()
+            os.fsync(file.fileno())
+
+        #Automatically replace old hash
+        os.replace(temporary_hash_path, baseline_hash_path)
 
     except OSError as error:
 
         logging.error(f"Could not save baseline hash: {error}")
+
+        try:
+            if temporary_hash_path.exists():
+                temporary_hash_path.unlink()
+
+        except OSError as cleanup_error:
+
+            logging.error(f"Could not remove temporary hash file: {cleanup_error}")
+
         return False
 
     logging.info(
@@ -887,7 +904,12 @@ def initialize(monitored_folder, baseline_path, exclusions):
         return EXIT_ERROR
 
     #Save baseline
-    save_baseline(file_hashes, baseline_path, exclusions) 
+    if not save_baseline(file_hashes, baseline_path, exclusions):
+        print("[ERROR] Could not save baseline.")
+
+        logging.error("Baseline creation failed because baseline could not be saved.")
+
+        return EXIT_ERROR
 
     #Protect baseline
     if not save_baseline_hash(baseline_path):
