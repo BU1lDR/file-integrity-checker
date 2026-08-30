@@ -1975,8 +1975,6 @@ def create_parser():
 
 def main():
 
-    print("[DEBUG] main() started")
-
     # --------------------------------------------------
     # Configure logging
     # --------------------------------------------------
@@ -1991,10 +1989,6 @@ def main():
 
     args = parser.parse_args()
 
-
-    print(
-        f"[DEBUG] command = {args.command}"
-    )
 
     # --------------------------------------------------
     # No command
@@ -2044,11 +2038,15 @@ def main():
     # Resolve exclusions
     # --------------------------------------------------
 
-    exclusions = (
-        args.exclude 
-        if args.exclude is not None 
-        else application_config["exclusions"]
-    )
+    if hasattr(args, "exclude"): 
+        exclusions = (
+            args.exclude 
+            if args.exclude is not None 
+            else application_config["exclusions"]
+        )
+
+    else:
+        exclusions = application_config["exclusions"]
 
     # --------------------------------------------------
     # Initialize

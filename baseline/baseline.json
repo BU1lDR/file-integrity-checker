@@ -1,10 +1,11 @@
 {
     "version": 2,
     "algorithm": "sha256",
-    "exclusions": [],
+    "exclusions": [
+        "cache"
+    ],
     "files": {
         "document.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "cache/temporary.dat": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
         "important/secret.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
 }
