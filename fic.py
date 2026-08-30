@@ -319,6 +319,7 @@ def save_baseline(file_hashes, baseline_path, exclusions):
             os.replace(temporary_path, baseline_path)
 
     except OSError as error:
+        print(f"[ERROR] Could not save baseline: {error}")
 
         logging.error(f"Could not save baseline: {error}")
 

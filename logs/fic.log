@@ -1,0 +1,21 @@
+2026-08-30 13:55:04,085 [INFO] Baseline creation started. Folder=test_data, Baseline=baseline\baseline.json, Exclusions=[]
+2026-08-30 13:55:04,086 [INFO] Scanning directory: test_data
+2026-08-30 13:55:04,086 [INFO] Exclusions: []
+2026-08-30 13:55:04,090 [INFO] Scan completed. Files successfully hashed: 3, Symlinks skipped: 0, Errors: 0
+2026-08-30 13:55:04,090 [INFO] Saving baseline to: baseline\baseline.json
+2026-08-30 13:55:04,096 [ERROR] Could not save baseline: [WinError 32] The process cannot access the file because it is being used by another process: 'baseline\\baseline.json.tmp' -> 'baseline\\baseline.json'
+2026-08-30 13:55:04,097 [ERROR] Baseline creation failed because baseline could not be saved.
+2026-08-30 13:57:53,140 [INFO] Baseline creation started. Folder=test_data, Baseline=baseline\baseline.json, Exclusions=[]
+2026-08-30 13:57:53,147 [INFO] Scanning directory: test_data
+2026-08-30 13:57:53,147 [INFO] Exclusions: []
+2026-08-30 13:57:53,149 [INFO] Scan completed. Files successfully hashed: 3, Symlinks skipped: 0, Errors: 0
+2026-08-30 13:57:53,149 [INFO] Saving baseline to: baseline\baseline.json
+2026-08-30 13:57:53,151 [ERROR] Could not save baseline: [WinError 32] The process cannot access the file because it is being used by another process: 'baseline\\baseline.json.tmp' -> 'baseline\\baseline.json'
+2026-08-30 13:57:53,152 [ERROR] Baseline creation failed because baseline could not be saved.
+2026-08-30 13:59:54,542 [INFO] Baseline creation started. Folder=test_data, Baseline=baseline\baseline.json, Exclusions=[]
+2026-08-30 13:59:54,543 [INFO] Scanning directory: test_data
+2026-08-30 13:59:54,543 [INFO] Exclusions: []
+2026-08-30 13:59:54,545 [INFO] Scan completed. Files successfully hashed: 3, Symlinks skipped: 0, Errors: 0
+2026-08-30 13:59:54,545 [INFO] Saving baseline to: baseline\baseline.json
+2026-08-30 13:59:54,553 [ERROR] Could not save baseline: [WinError 32] The process cannot access the file because it is being used by another process: 'baseline\\baseline.json.tmp' -> 'baseline\\baseline.json'
+2026-08-30 13:59:54,554 [ERROR] Baseline creation failed because baseline could not be saved.
