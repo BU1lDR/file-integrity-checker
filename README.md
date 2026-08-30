@@ -16,12 +16,12 @@
 By creating a cryptographic snapshot (baseline) of your target directory using **SHA-256 digests**, FIC lets you detect file modifications, additions, and deletions instantly [cite: 1].
 
 ```text
-┌──────────────────┐      📸 Snapshot     ┌──────────────────┐
-│ Monitored Folder │ ───────────────────> │  baseline.json   │
-└──────────────────┘                      └──────────────────┘
-         │                                         │
-         │  🔍 Compare Current vs Baseline         │
-         └─────────────────────────────────────────┘
+┌──────────────────┐      📸 Snapshot     ┌─────────────────┐ 
+│ Monitored Folder │ ───────────────────> │  baseline.json  │
+└──────────────────┘                      └─────────────────┘
+         │                                          │
+         │     🔍 Compare Current vs Baseline       |
+         └──────────────────────────────────────────┘
                                │
                                ▼
             🚨 [MODIFIED]  ✨ [NEW]  ❌ [DELETED]
