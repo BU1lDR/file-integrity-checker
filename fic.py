@@ -1975,6 +1975,8 @@ def create_parser():
 
 def main():
 
+    print("[DEBUG] main() started")
+
     # --------------------------------------------------
     # Configure logging
     # --------------------------------------------------
@@ -1988,6 +1990,11 @@ def main():
     parser = create_parser()
 
     args = parser.parse_args()
+
+
+    print(
+        f"[DEBUG] command = {args.command}"
+    )
 
     # --------------------------------------------------
     # No command
@@ -2077,3 +2084,13 @@ def main():
         )
 
     return EXIT_ERROR
+
+# --------------------------------------------------
+# Program entry point
+# --------------------------------------------------
+
+if __name__ == "__main__":
+
+    sys.exit(
+        main()
+    )
