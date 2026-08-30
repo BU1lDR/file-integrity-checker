@@ -13,6 +13,8 @@ from pathlib import Path
 # Configuration
 # --------------------------------------------------
 
+CONFIG_PATH = Path("config.json")
+
 MONITORED_FOLDER = Path("test_data")
 BASELINE_PATH = Path("baseline/baseline.json")
 LOG_PATH = Path("logs/fic.log")
@@ -25,6 +27,262 @@ LOG_PATH = Path("logs/fic.log")
 EXIT_SUCCESS = 0
 EXIT_INTEGRITY_FAILURE = 1
 EXIT_ERROR = 2
+
+
+# --------------------------------------------------
+# Load config
+# --------------------------------------------------
+
+def load_config(config_path):
+
+    logging.info(
+        f"Loading configuration: "
+        f"{config_path}"
+    )
+
+    try:
+        with open(config_path, "r", encoding="utf-8") as file:
+            config = json.load(file)
+
+    except FileNotFoundError:
+        print(
+            f"[ERROR] Configuration "
+            f"file not found: "
+            f"{config_path}"
+        )
+
+        return None
+
+    except json.JSONDecodeError as error:
+        print(
+            f"[ERROR] Configuration "
+            f"contains invalid JSON: "
+            f"{error}"
+        )
+
+        return None
+
+    except OSError as error:
+        print(
+            f"[ERROR] Could not read "
+            f"configuration: {error}"
+        )
+
+        return None
+
+    # --------------------------------------------------
+    # Validate root object
+    # --------------------------------------------------
+
+    if not isinstance(config, dict):
+        print(
+            "[ERROR] Configuration "
+            "root must be a JSON object."
+        )
+
+        return None
+
+    # --------------------------------------------------
+    # Validate configuration
+    # --------------------------------------------------
+    if not validate_config(config):
+
+        logging.error(
+            "Configuration validation failed."
+        )
+
+        return None
+
+    logging.info(
+    "Configuration loaded and validated successfully."
+    )
+
+    return config
+
+
+# --------------------------------------------------
+# Validate config
+# --------------------------------------------------
+
+def validate_config(config):
+
+    required_keys = {
+        "monitored_folder",
+        "baseline_path",
+        "log_path",
+        "exclusions"
+    }
+
+    # --------------------------------------------------
+    # Check required keys
+    # --------------------------------------------------
+
+    missing_keys = (required_keys - config.keys())
+
+    if missing_keys:
+        print(
+            "[ERROR] Configuration "
+            f"is missing required "
+            f"keys: "
+            f"{', '.join(sorted(missing_keys))}"
+        )
+
+        logging.error(
+            "Configuration is missing "
+            f"required keys: "
+            f"{', '.join(sorted(missing_keys))}"
+        )
+
+        return False
+
+    # --------------------------------------------------
+    # Check monitored_folder
+    # --------------------------------------------------
+
+    if not isinstance(config["monitored_folder"], str):
+        print(
+            "[ERROR] "
+            "'monitored_folder' "
+            "must be a string."
+        )
+
+        return False
+
+    if not config["monitored_folder"].strip():
+        print(
+            "[ERROR] "
+            "'monitored_folder' "
+            "cannot be empty."
+        )
+
+        return False
+
+    # --------------------------------------------------
+    # Check baseline_path
+    # --------------------------------------------------
+
+    if not isinstance(config["baseline_path"], str):
+        print(
+            "[ERROR] "
+            "'baseline_path' "
+            "must be a string."
+        )
+
+        return False
+
+    if not config["baseline_path"].strip():
+        print(
+            "[ERROR] "
+            "'baseline_path' "
+            "cannot be empty."
+        )
+
+        return False
+
+    # --------------------------------------------------
+    # Check log_path
+    # --------------------------------------------------
+
+    if not isinstance(config["log_path"], str):
+        print(
+            "[ERROR] "
+            "'log_path' "
+            "must be a string."
+        )
+
+        return False
+
+    if not config["log_path"].strip():
+        print(
+            "[ERROR] "
+            "'log_path' "
+            "cannot be empty."
+        )
+
+        return False
+
+    # --------------------------------------------------
+    # Check exclusions
+    # --------------------------------------------------
+
+    if not isinstance(config["exclusions"], list):
+
+        print(
+            "[ERROR] "
+            "'exclusions' "
+            "must be a list."
+        )
+
+        return False
+
+    # --------------------------------------------------
+    # Validate each exclusion
+    # --------------------------------------------------
+
+    for exclusion in config["exclusions"]:
+
+        if not isinstance(exclusion, str):
+            print(
+                "[ERROR] Every exclusion "
+                "must be a string."
+            )
+
+            return False
+
+        if not exclusion.strip():
+            print(
+                "[ERROR] Exclusions "
+                "cannot be empty."
+            )
+
+            return False
+
+        if not validate_exclusion(exclusion):
+            print(
+                "[ERROR] Invalid "
+                f"exclusion: {exclusion}"
+            )
+
+            return False
+
+    logging.info(
+        "Configuration validation "
+        "successful."
+    )
+
+    return True
+
+
+# --------------------------------------------------
+# Build application configuration
+# --------------------------------------------------
+
+def build_config(config):
+
+    application_config = {
+        "monitored_folder": Path(
+            config["monitored_folder"]
+        ),
+
+        "baseline_path": Path(
+            config["baseline_path"]
+        ),
+
+        "log_path": Path(
+            config["log_path"]
+        ),
+
+        "exclusions": config[
+            "exclusions"
+        ]
+    }
+
+    logging.info(
+        "Application configuration "
+        "built successfully."
+    )
+
+    return application_config
 
 
 # --------------------------------------------------
@@ -1599,14 +1857,14 @@ def show_status(monitored_folder, baseline_path):
 
 
 # --------------------------------------------------
-# Create command-line parser
+# CLI parser
 # --------------------------------------------------
 
 def create_parser():
 
     parser = argparse.ArgumentParser(
 
-        description=(
+        description = (
             "File Integrity Checker - "
             "detect unauthorized file "
             "changes."
@@ -1614,7 +1872,7 @@ def create_parser():
     )
 
     subparsers = parser.add_subparsers(
-        dest="command"
+        dest = "command"
     )
 
     # ==================================================
@@ -1623,28 +1881,28 @@ def create_parser():
 
     init_parser = subparsers.add_parser(
         "init",
-        help="Create a new baseline."
+        help = "Create a new baseline."
     )
 
     init_parser.add_argument(
         "--folder",
-        type=Path,
-        default=MONITORED_FOLDER,
-        help="Folder to monitor."
+        type = Path,
+        default = None,
+        help = "Folder to monitor."
     )
 
     init_parser.add_argument(
         "--baseline",
-        type=Path,
-        default=BASELINE_PATH,
-        help="Path to the baseline file."
+        type = Path,
+        default = None,
+        help = "Path to the baseline file."
     )
 
     init_parser.add_argument(
         "--exclude",
-        action="append",
-        default=[],
-        help=(
+        action = "append",
+        default = None,
+        help = (
             "Path to exclude from "
             "monitoring. Can be "
             "specified multiple times."
@@ -1657,28 +1915,28 @@ def create_parser():
 
     check_parser = subparsers.add_parser(
         "check",
-        help="Check file integrity."
+        help = "Check file integrity."
     )
 
     check_parser.add_argument(
         "--folder",
-        type=Path,
-        default=MONITORED_FOLDER,
-        help="Folder to check."
+        type = Path,
+        default = None,
+        help = "Folder to check."
     )
 
     check_parser.add_argument(
         "--baseline",
-        type=Path,
-        default=BASELINE_PATH,
-        help="Path to the baseline file."
+        type = Path,
+        default = None,
+        help = "Path to the baseline file."
     )
 
     check_parser.add_argument(
         "--exclude",
-        action="append",
-        default=[],
-        help=(
+        action = "append",
+        default = None,
+        help = (
             "Path to exclude from "
             "monitoring. Can be "
             "specified multiple times."
@@ -1691,21 +1949,21 @@ def create_parser():
 
     status_parser = subparsers.add_parser(
         "status",
-        help="Show checker status."
+        help = "Show checker status."
     )
 
     status_parser.add_argument(
         "--folder",
-        type=Path,
-        default=MONITORED_FOLDER,
-        help="Folder to inspect."
+        type = Path,
+        default = None,
+        help = "Folder to inspect."
     )
 
     status_parser.add_argument(
         "--baseline",
-        type=Path,
-        default=BASELINE_PATH,
-        help="Path to the baseline file."
+        type = Path,
+        default = None,
+        help = "Path to the baseline file."
     )
 
     return parser
@@ -1717,7 +1975,15 @@ def create_parser():
 
 def main():
 
+    # --------------------------------------------------
+    # Configure logging
+    # --------------------------------------------------
+
     setup_logging()
+
+    # --------------------------------------------------
+    # Parse command-line arguments
+    # --------------------------------------------------
 
     parser = create_parser()
 
@@ -1729,7 +1995,53 @@ def main():
 
     if args.command is None:
         parser.print_help()
+
         return EXIT_ERROR
+
+    # --------------------------------------------------
+    # Load config
+    # --------------------------------------------------
+
+    config = load_config(CONFIG_PATH)
+
+    if config is None:
+        return EXIT_ERROR
+
+    # --------------------------------------------------
+    # Build application config
+    # --------------------------------------------------
+
+    application_config = build_config(config)
+
+    # --------------------------------------------------
+    # Resolve monitored folder
+    # --------------------------------------------------
+
+    monitored_folder = (
+        args.folder 
+        if args.folder is not None 
+        else application_config["monitored_folder"]
+    )
+
+    # --------------------------------------------------
+    # Resolve baseline path
+    # --------------------------------------------------
+
+    baseline_path = (
+        args.baseline 
+        if args.baseline is not None 
+        else application_config["baseline_path"]
+    )
+
+    # --------------------------------------------------
+    # Resolve exclusions
+    # --------------------------------------------------
+
+    exclusions = (
+        args.exclude 
+        if args.exclude is not None 
+        else application_config["exclusions"]
+    )
 
     # --------------------------------------------------
     # Initialize
@@ -1737,9 +2049,9 @@ def main():
 
     if args.command == "init":
         return initialize(
-            args.folder,
-            args.baseline,
-            args.exclude
+            monitored_folder,
+            baseline_path,
+            exclusions
         )
 
     # --------------------------------------------------
@@ -1748,9 +2060,9 @@ def main():
 
     elif args.command == "check":
         return check_integrity(
-            args.folder,
-            args.baseline,
-            args.exclude
+            monitored_folder,
+            baseline_path,
+            exclusions
         )
 
     # --------------------------------------------------
@@ -1758,20 +2070,10 @@ def main():
     # --------------------------------------------------
 
     elif args.command == "status":
+
         return show_status(
-            args.folder,
-            args.baseline
+            monitored_folder,
+            baseline_path
         )
 
     return EXIT_ERROR
-
-
-# --------------------------------------------------
-# Program entry point
-# --------------------------------------------------
-
-if __name__ == "__main__":
-
-    sys.exit(
-        main()
-    )

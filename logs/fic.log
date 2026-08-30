@@ -123,3 +123,38 @@
 2026-08-30 15:06:52,346 [INFO] Atomic replacement succeeded on attempt 1.
 2026-08-30 15:06:52,346 [INFO] Baseline hash saved: baseline\baseline.sha256
 2026-08-30 15:06:52,346 [INFO] Baseline created for 3 files.
+2026-08-30 15:18:13,804 [INFO] Loading configuration: config.json
+2026-08-30 15:18:13,804 [INFO] Configuration loaded successfully.
+2026-08-30 15:18:41,793 [INFO] Loading configuration: config.json
+2026-08-30 15:19:09,181 [INFO] Loading configuration: config.json
+2026-08-30 15:30:18,124 [INFO] Loading configuration: config.json
+2026-08-30 15:30:18,124 [INFO] Configuration validation successful.
+2026-08-30 15:30:18,124 [INFO] Configuration loaded and validated successfully.
+2026-08-30 15:30:18,124 [INFO] Application configuration built successfully.
+2026-08-30 15:30:33,455 [INFO] Loading configuration: config.json
+2026-08-30 15:30:33,455 [INFO] Configuration validation successful.
+2026-08-30 15:30:33,455 [INFO] Configuration loaded and validated successfully.
+2026-08-30 15:30:33,455 [INFO] Application configuration built successfully.
+2026-08-30 15:32:25,481 [INFO] Baseline creation started. Folder=test_data, Baseline=baseline\baseline.json, Exclusions=[]
+2026-08-30 15:32:25,482 [INFO] Scanning directory: test_data
+2026-08-30 15:32:25,482 [INFO] Exclusions: []
+2026-08-30 15:32:25,483 [INFO] Scan completed. Files successfully hashed: 3, Symlinks skipped: 0, Errors: 0
+2026-08-30 15:32:25,484 [INFO] Saving baseline to: baseline\baseline.json
+2026-08-30 15:32:25,486 [INFO] Temporary baseline created: baseline\baseline.json.tmp
+2026-08-30 15:32:25,486 [INFO] Atomic replacement succeeded on attempt 1.
+2026-08-30 15:32:25,486 [INFO] Baseline saved successfully: baseline\baseline.json
+2026-08-30 15:32:25,489 [INFO] Temporary baseline hash created: baseline\baseline.sha256.tmp
+2026-08-30 15:32:25,489 [INFO] Atomic replacement succeeded on attempt 1.
+2026-08-30 15:32:25,489 [INFO] Baseline hash saved: baseline\baseline.sha256
+2026-08-30 15:32:25,489 [INFO] Baseline created for 3 files.
+2026-08-30 15:32:31,147 [INFO] Integrity check started. Folder=test_data, Baseline=baseline\baseline.json, Exclusions=[]
+2026-08-30 15:32:31,149 [INFO] Baseline integrity verified successfully.
+2026-08-30 15:32:31,149 [INFO] Loading baseline: baseline\baseline.json
+2026-08-30 15:32:31,149 [INFO] Baseline loaded successfully. Files: 3
+2026-08-30 15:32:31,149 [INFO] Scanning directory: test_data
+2026-08-30 15:32:31,149 [INFO] Exclusions: []
+2026-08-30 15:32:31,150 [INFO] Scan completed. Files successfully hashed: 3, Symlinks skipped: 0, Errors: 0
+2026-08-30 15:32:31,150 [INFO] Integrity check completed. Unchanged=3, Modified=0, New=0, Deleted=0, ScanErrors=0, SymlinksSkipped=0
+2026-08-30 15:32:35,437 [INFO] Loading baseline: baseline\baseline.json
+2026-08-30 15:32:35,438 [INFO] Baseline loaded successfully. Files: 3
+2026-08-30 15:32:35,438 [INFO] Baseline integrity verified successfully.
