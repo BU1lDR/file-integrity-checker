@@ -1,6 +1,10 @@
 {
-    "monitored_folder": "test_data",
-    "baseline_path": "baseline/baseline.json",
+    "monitored_folder": "target_folder",
+    "baseline_path": "baseline.json",
     "log_path": "logs/fic.log",
-    "exclusions": []
+    "exclusions": [
+        "temp",
+        "cache/logs",
+        "ignored_file.txt"
+    ]
 }
