@@ -1,0 +1,1 @@
+# File Integrity Checker uses Python's standard library only.

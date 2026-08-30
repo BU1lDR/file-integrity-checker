@@ -18,15 +18,24 @@
 ## Core Concepts & Architecture
 
 ```
-   ┌──────────────────┐
-   │ Monitored Folder │
-   └─────────┬────────┘
-             │
-             ▼
-    [SHA-256 Hashing] ───►  Atomic Baseline Write (.tmp ──► .json)
-             │                          │
-             ▼                          ▼
-    [Integrity Check] ◄─── Compare ─── [Self-Verification (.sha256)]
+                    ┌─────────────────┐
+                    │ Monitored Files │
+                    └────────┬────────┘
+                             │
+                         SHA-256
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │    Baseline     │
+                    │    baseline.json│
+                    └────────┬────────┘
+                             │
+                      Integrity Hash
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │ Baseline Hash   │
+                    └─────────────────┘
 ```
 
 ### 1. SHA-256 Cryptographic Hashing
