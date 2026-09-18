@@ -2,7 +2,7 @@
 # Python
 # ============================================================
 
-**pycache**/
+__pycache__/
 *.py[cod]
 *$py.class
 
@@ -101,4 +101,3 @@ Desktop.ini
 temp/
 tmp/
 .cache/
-EOF
