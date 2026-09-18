@@ -36,7 +36,10 @@ ENV/
 # File Integrity Checker - Generated Runtime Data
 # ============================================================
 
-# Generated baseline manifests and integrity hashes
+# Generated baseline manifests and integrity hashes.
+# baseline.json is the default baseline_path in config.json, so running the
+# walkthrough in README.md creates it — it is output, not source.
+baseline.json
 baseline/
 baselines/
 *.baseline

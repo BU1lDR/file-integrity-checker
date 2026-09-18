@@ -1,0 +1,4 @@
+This file is listed in config.json's "exclusions", so FIC never hashes it.
+
+Change it, run `python fic.py check`, and nothing should be reported — that is the
+exclusion list working. Rename it and it shows up as [NEW].

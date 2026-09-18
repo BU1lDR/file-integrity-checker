@@ -1,0 +1,5 @@
+Sample file for the FIC walkthrough in README.md.
+
+The shipped config.json monitors target_folder/, so `python fic.py init` has
+something to snapshot on a fresh clone. Edit this line, run `python fic.py check`,
+and it should come back as [MODIFIED].

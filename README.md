@@ -87,7 +87,23 @@ cd my_projects/file_integrity_checker
 
 # 2. Verify Python version (3.8+). Use `python3` if `python` is not on your PATH.
 python --version
+
+# 3. Take a baseline. The repo ships a sample target_folder/, which is what the
+#    default config.json monitors, so this works on a fresh clone.
+python fic.py init
+
+# 4. Nothing has changed yet, so this reports every file as [UNCHANGED].
+python fic.py check
 ```
+
+There is nothing to install — FIC is standard library only. `init` writes
+`baseline.json`, `baseline.sha256`, and `logs/fic.log` next to `config.json`; all
+three are gitignored.
+
+To point FIC at something of your own, edit `monitored_folder` in `config.json`
+(or pass `--folder`). If that folder does not exist, `init` stops with
+`[ERROR] Monitored folder does not exist` rather than creating it — FIC will not
+invent the thing it is supposed to be watching.
 
 ---
 
