@@ -13,7 +13,19 @@ from pathlib import Path
 # Configuration
 # --------------------------------------------------
 
-CONFIG_PATH = Path("config.json")
+# Resolved next to fic.py, not against the shell's current directory. This used
+# to be Path("config.json"), which meant the tool only ran if you happened to be
+# standing in its own folder: from the repo root,
+#
+#     python file_integrity_checker/fic.py init
+#
+# died with "[ERROR] Configuration file not found: config.json" before it read a
+# single byte. The readme's own first command was one of the two ways to hit it.
+# Anchoring to __file__ makes the default config findable from anywhere; --config
+# overrides it for a config kept somewhere else.
+DEFAULT_CONFIG_PATH = (
+    Path(__file__).resolve().parent / "config.json"
+)
 
 
 # --------------------------------------------------
@@ -253,18 +265,34 @@ def validate_config(config):
 # Build application configuration
 # --------------------------------------------------
 
-def build_config(config):
+def build_config(config, config_dir):
+
+    # Relative paths in config.json are resolved against the directory the config
+    # itself lives in, not against wherever the shell happens to be. Otherwise
+    # finding the config from another directory only moves the problem: FIC would
+    # load the right config and then go looking for "target_folder" and writing
+    # "logs/fic.log" next to the caller instead of next to the config, so the same
+    # command would monitor a different folder depending on where you typed it.
+    # Paths given on the command line are deliberately NOT anchored this way —
+    # those are relative to the shell, which is what a person typing one expects.
+    def resolve(value):
+        path = Path(value)
+
+        if path.is_absolute():
+            return path
+
+        return (config_dir / path)
 
     application_config = {
-        "monitored_folder": Path(
+        "monitored_folder": resolve(
             config["monitored_folder"]
         ),
 
-        "baseline_path": Path(
+        "baseline_path": resolve(
             config["baseline_path"]
         ),
 
-        "log_path": Path(
+        "log_path": resolve(
             config["log_path"]
         ),
 
@@ -275,7 +303,9 @@ def build_config(config):
 
     logging.info(
         "Application configuration "
-        "built successfully."
+        f"built successfully. Relative "
+        f"paths resolved against: "
+        f"{config_dir}"
     )
 
     return application_config
@@ -1958,6 +1988,17 @@ def create_parser():
         )
     )
 
+    init_parser.add_argument(
+        "--config",
+        type = Path,
+        default = DEFAULT_CONFIG_PATH,
+        help = (
+            "Path to config.json. "
+            "Defaults to the one beside "
+            "fic.py."
+        )
+    )
+
     # ==================================================
     # CHECK COMMAND
     # ==================================================
@@ -1992,6 +2033,17 @@ def create_parser():
         )
     )
 
+    check_parser.add_argument(
+        "--config",
+        type = Path,
+        default = DEFAULT_CONFIG_PATH,
+        help = (
+            "Path to config.json. "
+            "Defaults to the one beside "
+            "fic.py."
+        )
+    )
+
     # ==================================================
     # STATUS COMMAND
     # ==================================================
@@ -2013,6 +2065,17 @@ def create_parser():
         type = Path,
         default = None,
         help = "Path to the baseline file."
+    )
+
+    status_parser.add_argument(
+        "--config",
+        type = Path,
+        default = DEFAULT_CONFIG_PATH,
+        help = (
+            "Path to config.json. "
+            "Defaults to the one beside "
+            "fic.py."
+        )
     )
 
     return parser
@@ -2045,7 +2108,9 @@ def main():
     # Load config
     # --------------------------------------------------
 
-    config = load_config(CONFIG_PATH)
+    config_path = args.config.expanduser()
+
+    config = load_config(config_path)
 
     if config is None:
         return EXIT_ERROR
@@ -2054,7 +2119,12 @@ def main():
     # Build application config
     # --------------------------------------------------
 
-    application_config = build_config(config)
+    # resolve() so a config reached by a relative --config still anchors its own
+    # relative paths to a real directory rather than to "" .
+    application_config = build_config(
+        config,
+        config_path.resolve().parent
+    )
 
     # --------------------------------------------------
     # Configure logging

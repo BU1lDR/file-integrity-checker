@@ -126,11 +126,25 @@ Setup your monitoring scope in **`config.json`**:
 
 > ⚠️ **Security Rule**: Relative paths only for `exclusions`. Absolute paths and parent traversal patterns (`..`) are strictly prohibited and rejected during config parsing.
 
+**Where relative paths point.** Every relative path in `config.json` is resolved against the
+directory `config.json` lives in — not against whatever directory you ran the command from. So
+`python fic.py check` and `python file_integrity_checker/fic.py check` monitor the same folder and
+write the same baseline. Paths you type on the command line (`--folder`, `--baseline`, `--config`)
+are relative to your shell, which is what you would expect from something you just typed.
+
+Use `--config` to keep a config somewhere else:
+
+```bash
+python fic.py check --config /etc/fic/production.json
+```
+
 ---
 
 ## 💻 Usage
 
-FIC features three straightforward commands:
+FIC features three straightforward commands. Run them from anywhere — `fic.py` finds its own
+`config.json`, so `python file_integrity_checker/fic.py check` from the repo root does the same
+thing as `python fic.py check` from inside the project.
 
 ### 1. Create a Baseline (`init`)
 Creates a fresh snapshot of your monitored directory.
@@ -143,6 +157,10 @@ python fic.py init
 ```bash
 python fic.py init --folder ./target_folder --baseline ./baseline.json --exclude temp
 ```
+
+> Passing `--exclude` **replaces** the config's exclusion list rather than adding to it, and `check`
+> refuses to run if its exclusions do not match the ones recorded in the baseline. Override on `init`
+> and you have to pass the same `--exclude` flags to `check`.
 
 ---
 
@@ -166,19 +184,22 @@ python fic.py status
 
 ## Example Output
 
+This is the shipped `target_folder/` after `init`, one file edited, one added, one deleted — so you
+can reproduce it rather than take its word for it.
+
 ### Running `python fic.py check` (Changes Detected)
 
 ```text
 Checking file integrity...
 
-[UNCHANGED] config.py
-[MODIFIED]  data/database.sqlite
-[NEW]       temp_notes.txt
-[DELETED]   old_config.json
+
+[MODIFIED]  notes.txt
+[NEW]       scratch.txt
+[DELETED]   data/records.csv
 
 Integrity Check Summary
 -----------------------
-Unchanged:   1
+Unchanged:   0
 Modified:    1
 New:         1
 Deleted:     1
@@ -187,6 +208,9 @@ Scan errors: 0
 Symbolic links skipped: 0
 ```
 
+Paths are relative to the monitored folder, not to the baseline. `ignored_file.txt` was edited too
+and is absent from the report, because it is in the exclusion list.
+
 ---
 
 ### Running `python fic.py status`
@@ -194,15 +218,19 @@ Symbolic links skipped: 0
 ```text
 File Integrity Checker Status
 -----------------------------
-Monitored folder: OK (target_folder)
-Baseline: OK (baseline.json)
-Baseline hash: OK (baseline.sha256)
-Baseline files: 4
-Exclusions: 2
+Monitored folder: OK (.../file_integrity_checker/target_folder)
+Baseline: OK (.../file_integrity_checker/baseline.json)
+Baseline hash: OK (.../file_integrity_checker/baseline.sha256)
+Baseline files: 2
+Exclusions: 3
   - temp
   - cache/logs
+  - ignored_file.txt
 Baseline integrity: OK
 ```
+
+The paths print in full so there is no doubt which folder is being watched — `status` run from two
+different directories should name the same one.
 
 ---
 
@@ -239,11 +267,21 @@ Integrate FIC seamlessly into **CI/CD pipelines**, **cron jobs**, or **automatio
 
 ## 🧪 Running Tests
 
-To run the unit test suite:
+From inside `file_integrity_checker/`:
 
 ```bash
 python -m unittest discover -s tests
 ```
+
+Unlike `fic.py`, this one does care where you stand — the tests `import fic`, so `fic.py` has to be
+on the path. From the repo root, name the top-level directory explicitly:
+
+```bash
+python -m unittest discover -s file_integrity_checker/tests -t file_integrity_checker
+```
+
+39 tests, no fixtures to set up; they build their own directories under `tempfile` and clean up
+after themselves, so the suite never touches your real baseline.
 
 ---
 
