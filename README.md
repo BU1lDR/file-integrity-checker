@@ -125,7 +125,12 @@ Setup your monitoring scope in **`config.json`**:
 }
 ```
 
-> ⚠️ **Security Rule**: Relative paths only for `exclusions`. Absolute paths and parent traversal patterns (`..`) are strictly prohibited and rejected during config parsing.
+> ⚠️ **Security Rule**: Relative, forward-slash paths only for `exclusions`. Rejected during config
+> parsing: anything starting with `/`, anything carrying a drive letter (`C:/logs`, `C:\logs`, and the
+> drive-relative `C:logs`), anything containing a backslash, and any path with a `..` segment. The rule
+> is the same one applied to the paths inside the baseline, and it is deliberately spelled out as string
+> rules rather than delegated to `Path.is_absolute()` — that method calls `/etc/passwd` relative on
+> Windows and absolute on Linux, so it cannot decide this for a config file meant to be portable.
 
 **Where relative paths point.** Every relative path in `config.json` is resolved against the
 directory `config.json` lives in — not against whatever directory you ran the command from. So
@@ -259,9 +264,11 @@ Integrate FIC seamlessly into **CI/CD pipelines**, **cron jobs**, or **automatio
 - **If you need the baseline to survive an attacker**, the digest has to sit somewhere the attacker
   cannot reach: keep the baseline on read-only or append-only storage, or copy the `.sha256` off the
   host and compare it out of band. FIC does not do either for you.
-- **Traversal Defense**: Config exclusions and baseline paths are rejected if they are absolute or
-  contain `..`, and all relative paths are normalized to POSIX forward slashes (`/`) so the same
-  baseline reads the same way on Windows and Linux.
+- **Traversal Defense**: Config exclusions and baseline paths are rejected if they are absolute, carry
+  a drive letter, contain a backslash, or contain `..`, and all relative paths are normalized to POSIX
+  forward slashes (`/`) so the same baseline reads the same way on Windows and Linux. Both checks are
+  written as string rules; the exclusion one used `Path.is_absolute()` until it was noticed that the
+  answer differs by platform, which meant a config rejected on Linux was accepted on Windows.
 - **Safe Persistence**: Writes data to a temporary file (`.tmp`) before calling `os.replace` to protect against partial baseline writes during crashes or file locks.
 
 ---

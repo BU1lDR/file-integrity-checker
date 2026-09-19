@@ -348,17 +348,70 @@ def setup_logging(log_path):
 
 def validate_exclusion(exclusion):
 
-    path = Path(exclusion)
+    # String checks, not Path.is_absolute(), because that method answers a
+    # different question on each platform. PureWindowsPath("/etc/passwd")
+    # .is_absolute() is False — Windows calls a path with no drive letter
+    # relative — so this function used to accept "/etc/passwd" on Windows and
+    # reject it on Linux, from the same config file.
+    #
+    # These are the same five rules validate_baseline_entries applies, for the
+    # same reason: a path that means different things on different machines is
+    # not a path this tool can honour.
 
-    # Absolute paths are not allowed
-    if path.is_absolute():
+    # Empty or whitespace-only
+    if not exclusion.strip():
+
+        logging.error(
+            "Exclusion is empty."
+        )
+
+        return False
+
+    # Backslashes are not allowed. is_excluded() compares against
+    # relative_path.as_posix(), which always uses forward slashes, so an
+    # exclusion written "logs\temp" matches on Windows and silently matches
+    # nothing on Linux — a folder the user asked to skip gets scanned.
+    if "\\" in exclusion:
+
+        logging.error(
+            "Exclusion is not normalized; "
+            f"use forward slashes: {exclusion}"
+        )
+
+        return False
+
+    # Absolute Unix-style path
+    if exclusion.startswith("/"):
+
+        logging.error(
+            "Exclusion is an absolute "
+            f"path: {exclusion}"
+        )
+
+        return False
+
+    # Anything carrying a drive letter: "C:/Windows", "C:\\Windows" and the
+    # drive-relative "C:Windows", which names a different directory depending
+    # on that drive's current working directory.
+    if len(exclusion) >= 2 and exclusion[1] == ":":
+
+        logging.error(
+            "Exclusion is drive-qualified, "
+            "so it is not relative to the "
+            f"scanned folder: {exclusion}"
+        )
+
         return False
 
     # Parent-directory traversal is not allowed
-    for part in path.parts:
+    if ".." in Path(exclusion).parts:
 
-        if part == "..":
-            return False
+        logging.error(
+            "Exclusion escapes the scanned "
+            f"folder: {exclusion}"
+        )
+
+        return False
 
     return True
 

@@ -2534,6 +2534,154 @@ class TestCheckIntegrity(unittest.TestCase):
 
 
 # --------------------------------------------------
+# Validate an exclusion path
+# --------------------------------------------------
+
+# validate_exclusion had no tests at all, while the baseline path validator
+# above has nine — and the two are supposed to enforce the same rules on the
+# same kind of string. The untested one was the weaker one: it asked
+# Path(exclusion).is_absolute(), which on Windows says False for "/etc/passwd"
+# because there is no drive letter. The same config file was therefore accepted
+# on one platform and rejected on the other.
+#
+# These test the function directly rather than through check_integrity, because
+# the question is what the rule is, and there are ten cases of it.
+
+class TestValidateExclusion(unittest.TestCase):
+
+    def test_accepts_relative_paths(self):
+
+        for exclusion in (
+            "cache",
+            "logs/old",
+            "a/b/c",
+            "...",
+            "..hidden"
+        ):
+
+            with self.subTest(exclusion=exclusion):
+
+                self.assertTrue(
+                    fic.validate_exclusion(exclusion)
+                )
+
+    def test_rejects_absolute_unix_path(self):
+
+        # The case that motivated this class. Path.is_absolute() answers False
+        # here on Windows and True on Linux, so this must not depend on it.
+        self.assertFalse(
+            fic.validate_exclusion("/etc/passwd")
+        )
+
+    def test_rejects_drive_qualified_path(self):
+
+        for exclusion in (
+            "C:/Windows",
+            "C:\\Windows",
+            "c:/windows"
+        ):
+
+            with self.subTest(exclusion=exclusion):
+
+                self.assertFalse(
+                    fic.validate_exclusion(exclusion)
+                )
+
+    def test_rejects_drive_relative_path(self):
+
+        # No separator, so nothing above reads this as absolute — but "C:cache"
+        # means cache/ inside whatever C:'s current directory happens to be.
+        self.assertFalse(
+            fic.validate_exclusion("C:cache")
+        )
+
+    def test_rejects_backslash_path(self):
+
+        # Rejected because is_excluded() compares against as_posix(): this
+        # would match on Windows and match nothing at all on Linux.
+        self.assertFalse(
+            fic.validate_exclusion("logs\\temp")
+        )
+
+    def test_rejects_unc_path(self):
+
+        self.assertFalse(
+            fic.validate_exclusion("\\\\server\\share")
+        )
+
+    def test_rejects_path_traversal(self):
+
+        for exclusion in (
+            "..",
+            "../secrets",
+            "logs/../../etc",
+            "a/.."
+        ):
+
+            with self.subTest(exclusion=exclusion):
+
+                self.assertFalse(
+                    fic.validate_exclusion(exclusion)
+                )
+
+    def test_rejects_empty_path(self):
+
+        for exclusion in ("", "   ", "\t"):
+
+            with self.subTest(exclusion=exclusion):
+
+                self.assertFalse(
+                    fic.validate_exclusion(exclusion)
+                )
+
+
+class TestCheckIntegrityExclusionValidation(unittest.TestCase):
+
+    def test_check_integrity_rejects_absolute_unix_exclusion(self):
+
+        # The unit test above proves the rule; this proves the rule is reached
+        # and turns into the documented exit code rather than a silent scan.
+        with tempfile.TemporaryDirectory() as temp_dir:
+
+            root = Path(temp_dir)
+
+            monitored_folder = root / "data"
+
+            baseline_path = (
+                root / "baseline" / "baseline.json"
+            )
+
+            monitored_folder.mkdir()
+
+            (monitored_folder / "important.txt").write_text(
+                "Important content",
+                encoding="utf-8"
+            )
+
+            initialize_result = fic.initialize(
+                monitored_folder,
+                baseline_path,
+                []
+            )
+
+            self.assertEqual(
+                initialize_result,
+                fic.EXIT_SUCCESS
+            )
+
+            result = fic.check_integrity(
+                monitored_folder,
+                baseline_path,
+                ["/etc/passwd"]
+            )
+
+            self.assertEqual(
+                result,
+                fic.EXIT_ERROR
+            )
+
+
+# --------------------------------------------------
 # Run tests
 # --------------------------------------------------
 
