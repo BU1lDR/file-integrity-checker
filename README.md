@@ -2,7 +2,7 @@
 
 > **Lightweight, hash-based file integrity monitoring for Python.**
 
-[![CI](https://github.com/BU1lDR/my_projects/actions/workflows/file-integrity-checker.yml/badge.svg)](https://github.com/BU1lDR/my_projects/actions/workflows/file-integrity-checker.yml)
+[![CI](https://github.com/BU1lDR/file-integrity-checker/actions/workflows/file-integrity-checker.yml/badge.svg)](https://github.com/BU1lDR/file-integrity-checker/actions/workflows/file-integrity-checker.yml)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Security: SHA-256](https://img.shields.io/badge/Security-SHA--256-green.svg)](https://en.wikipedia.org/wiki/SHA-2)
@@ -10,7 +10,8 @@
 
 ---
 
-https://roadmap.sh/projects/file-integrity-checker
+- Brief: <https://roadmap.sh/projects/file-integrity-checker>
+- Submission: <https://roadmap.sh/projects/file-integrity-checker/solutions?u=6a6b956333d15c831089876f>
 
 ---
 
@@ -81,10 +82,9 @@ FIC executes in **four main stages**:
 ## 🚀 Quick Start & Installation
 
 ```bash
-# 1. Clone the repository. FIC lives in a subdirectory of my_projects, so the
-#    clone URL is the monorepo and the cd goes one level deeper.
-git clone https://github.com/BU1lDR/my_projects.git
-cd my_projects/file_integrity_checker
+# 1. Clone the repository.
+git clone https://github.com/BU1lDR/file-integrity-checker.git
+cd file-integrity-checker
 
 # 2. Verify Python version (3.8+). Use `python3` if `python` is not on your PATH.
 python --version
@@ -134,9 +134,10 @@ Setup your monitoring scope in **`config.json`**:
 
 **Where relative paths point.** Every relative path in `config.json` is resolved against the
 directory `config.json` lives in — not against whatever directory you ran the command from. So
-`python fic.py check` and `python file_integrity_checker/fic.py check` monitor the same folder and
-write the same baseline. Paths you type on the command line (`--folder`, `--baseline`, `--config`)
-are relative to your shell, which is what you would expect from something you just typed.
+`python fic.py check` from the repo root and `python /path/to/file-integrity-checker/fic.py check`
+from some unrelated directory monitor the same folder and write the same baseline. Paths you type on
+the command line (`--folder`, `--baseline`, `--config`) are relative to your shell, which is what you
+would expect from something you just typed.
 
 Use `--config` to keep a config somewhere else:
 
@@ -149,8 +150,8 @@ python fic.py check --config /etc/fic/production.json
 ## 💻 Usage
 
 FIC features three straightforward commands. Run them from anywhere — `fic.py` finds its own
-`config.json`, so `python file_integrity_checker/fic.py check` from the repo root does the same
-thing as `python fic.py check` from inside the project.
+`config.json`, so `python /path/to/file-integrity-checker/fic.py check` from an unrelated directory
+does the same thing as `python fic.py check` from the repo root.
 
 ### 1. Create a Baseline (`init`)
 Creates a fresh snapshot of your monitored directory.
@@ -224,9 +225,9 @@ and is absent from the report, because it is in the exclusion list.
 ```text
 File Integrity Checker Status
 -----------------------------
-Monitored folder: OK (.../file_integrity_checker/target_folder)
-Baseline: OK (.../file_integrity_checker/baseline.json)
-Baseline hash: OK (.../file_integrity_checker/baseline.sha256)
+Monitored folder: OK (.../file-integrity-checker/target_folder)
+Baseline: OK (.../file-integrity-checker/baseline.json)
+Baseline hash: OK (.../file-integrity-checker/baseline.sha256)
 Baseline files: 2
 Exclusions: 3
   - temp
@@ -275,24 +276,30 @@ Integrate FIC seamlessly into **CI/CD pipelines**, **cron jobs**, or **automatio
 
 ## 🧪 Running Tests
 
-From inside `file_integrity_checker/`:
+From the repository root:
 
 ```bash
 python -m unittest discover -s tests
 ```
 
 Unlike `fic.py`, this one does care where you stand — the tests `import fic`, so `fic.py` has to be
-on the path. From the repo root, name the top-level directory explicitly:
+on `sys.path`. Above, what puts it there is `python -m` adding the current directory, which is the
+repo root, which is where `fic.py` lives. From outside the clone, name the top-level directory
+explicitly instead:
 
 ```bash
-python -m unittest discover -s file_integrity_checker/tests -t file_integrity_checker
+python -m unittest discover -s file-integrity-checker/tests -t file-integrity-checker
 ```
 
-39 tests, no fixtures to set up; they build their own directories under `tempfile` and clean up
+The two differ only in what puts `fic.py` on `sys.path` — `python -m` in the first, `-t` in the
+second. Drop the `-t` and discovery still finds the test files and then fails to import the module
+they test, which is exactly the kind of thing that works one way and not the other. CI runs both.
+
+48 tests, no fixtures to set up; they build their own directories under `tempfile` and clean up
 after themselves, so the suite never touches your real baseline.
 
-**What CI covers.** Both commands above run on every push, on Linux, macOS and Windows, on Python
-3.8 through 3.14 — the two badges at the top of this file are claims, and this is what checks them.
+**What CI covers.** Both commands run on every push to `main` and every pull request, on Linux,
+macOS and Windows, on Python 3.8 through 3.14 — the two badges at the top of this file are claims, and this is what checks them.
 CI also runs the quickstart and the three commands end to end through a shell, because the tests
 `import fic` and call it in-process: they cannot catch a `python fic.py` that no longer starts, a
 path that resolves against the wrong directory, or a wrong exit code. Those three are asserted
@@ -304,16 +311,18 @@ which is how the standard-library-only claim is tested rather than just stated.
 ## 📁 Project Structure
 
 ```text
-my_projects/
-└── file_integrity_checker/
-    │
-    ├──  config.json          # Default configuration file
-    ├──  fic.py               # Main CLI tool & core scanner engine
-    ├──  requirements.txt     # Standard library only — nothing to install
-    ├──  README.md            # Project documentation
-    │
-    ├──  target_folder/       # Sample tree the default config monitors, so a fresh clone works
-    └──  tests/               # Unit testing modules
+file-integrity-checker/
+│
+├──  .github/             # CI workflow and the shared check set both of its jobs run
+├──  .gitignore           # Covers baseline.json, baseline.sha256, logs/, __pycache__/
+├──  config.json          # Default configuration file
+├──  fic.py               # Main CLI tool & core scanner engine
+├──  requirements.txt     # Standard library only — nothing to install
+├──  README.md            # Project documentation
+├──  LICENSE              # MIT
+│
+├──  target_folder/       # Sample tree the default config monitors, so a fresh clone works
+└──  tests/               # Unit testing modules
 ```
 
 ---

@@ -1,0 +1,95 @@
+# Checks the two badges at the top of README.md, which are claims: "Python 3.8+"
+# and "Linux | macOS | Windows". Until this existed, the suite had only ever run on
+# one developer's Windows box on 3.14, so neither was tested.
+#
+# The two claims are checked by two jobs, because they need different things:
+#
+#   versions   Every Python from 3.8 to 3.14, from the official Docker images rather
+#              than setup-python. That is not a stylistic choice: setup-python has no
+#              3.8 build for the ubuntu-24.04 runner image, and ubuntu-latest becomes
+#              Ubuntu 26 on 19 October 2026, which will do the same thing to 3.9 and
+#              3.10 in turn. Docker tags do not move, so this job does not rot when
+#              the runner image does.
+#
+#   platforms  All three operating systems, at the current Pythons, where
+#              setup-python is the only way to get an interpreter. This is the job
+#              that would catch a path or line-ending assumption.
+#
+# So the version floor is proven on Linux and the platform claim is proven on current
+# Pythons; neither job proves 3.8 on macOS, and the README does not say it does.
+#
+# Both jobs run the same checks, from .github/actions/fic-checks. Nothing is
+# installed in either: requirements.txt says standard library only, and an empty
+# environment is the only thing that actually tests that.
+#
+# There are deliberately no `paths:` filters. This repository is nothing but FIC, so
+# every change to it is a change to something these jobs check. A filter here could
+# only be redundant or wrong, and the wrong case does not fail: a filter that matches
+# nothing skips the workflow, and a repository whose CI never ran looks the same as
+# one with no failures. (This file carried such filters while FIC was one directory
+# of a larger repository, where most of the tree belonged to other projects. Of those
+# three patterns only one named the project directory, so at this repo's root it alone
+# would match nothing — the two naming .github/ would still match. CI would have run
+# when the workflow was edited and skipped every change to the code it exists to
+# check, which is why a stale filter is worse than no filter.)
+#
+# The name of this file is load-bearing: the CI badge in README.md points at
+# .../actions/workflows/file-integrity-checker.yml/badge.svg, which is this path, not
+# the workflow's `name:`. Renaming the file breaks the badge silently.
+name: file-integrity-checker
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # Superseded runs on the same ref are pointless; the prefix keeps this group from
+  # colliding if a second workflow is ever added.
+  group: fic-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  versions:
+    name: py${{ matrix.python-version }} (container)
+    runs-on: ubuntu-latest
+    # The full image, not -slim: actions/checkout needs git.
+    container: python:${{ matrix.python-version }}
+    strategy:
+      fail-fast: false      # one version failing must not hide the others
+      matrix:
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # The image tag is the only thing asserting which interpreter this is, so it
+      # is worth confirming the tag means what it says before trusting the result.
+      - name: The interpreter really is ${{ matrix.python-version }}
+        run: |
+          python -VV
+          python -c "import sys; assert '.'.join(map(str, sys.version_info[:2])) == '${{ matrix.python-version }}', sys.version"
+
+      - uses: ./.github/actions/fic-checks
+
+  platforms:
+    name: ${{ matrix.os }} / py${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false      # one platform failing must not hide the others
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ['3.12', '3.14']
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - uses: ./.github/actions/fic-checks

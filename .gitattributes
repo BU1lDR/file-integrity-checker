@@ -1,0 +1,6 @@
+# YAML must arrive with LF on every platform. .github/actions/fic-checks/action.yml
+# embeds a bash heredoc (<<'PY'). Checked out with CRLF the terminator never matches
+# and python is handed a stray carriage return, so the step fails on windows-latest
+# and nowhere else. This repo is cloned with core.autocrlf=true on Windows, which is
+# exactly that case, so the guarantee is written down rather than left to chance.
+*.yml text eol=lf

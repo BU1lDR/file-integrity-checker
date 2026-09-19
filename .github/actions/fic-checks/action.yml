@@ -1,0 +1,171 @@
+# The whole check set for the File Integrity Checker, in one place.
+#
+# It lives here because the workflow runs it twice over two different job shapes —
+# once per platform with setup-python, once per Python version in a container — and
+# the two were previously near-duplicates that had already drifted apart: the
+# container job ran four of the eight checks. A version proved on fewer checks than
+# the others is a gap nobody would notice from a green tick.
+#
+# Whatever provides `python` is the caller's problem. This file assumes nothing
+# beyond it being on PATH, which is what lets the same steps run under a Docker
+# image and under setup-python.
+#
+# FIC used to sit in a subdirectory of a monorepo, so "the workspace" and "the
+# directory fic.py lives in" were different places and several steps got their
+# meaning from that difference for free. FIC is now the whole repo: the checkout
+# root *is* fic.py's directory, and any check that was really about cwd has to
+# leave the workspace to still be saying something. That is why two steps below
+# run from a temporary directory instead of from the default cwd.
+name: file-integrity-checker checks
+description: Runs the suite and the documented CLI contract against whatever python is on PATH
+
+runs:
+  using: composite
+  steps:
+    # git needs this before `git status` will work in a container job, where the
+    # workspace is owned by a different uid than the one running the step. The
+    # wildcard is deliberate: the exact-path form has to match the path git
+    # computes, which differs between Windows, macOS and a Debian container.
+    # A throwaway CI checkout is not a place where this trades away anything.
+    - name: Let git read the workspace
+      shell: bash
+      run: git config --global --add safe.directory '*'
+
+    # `unittest discover` exits 0 when it collects nothing, so a renamed directory
+    # or a changed file pattern would turn the two suite steps green while testing
+    # zero lines of code. That failure mode is silent, so it gets its own check.
+    #
+    # tests/ is now directly under the checkout root, and the root is the top-level
+    # directory. The hazard being guarded — directory name, file pattern — is the
+    # same for both suite steps below, so one probe still covers both.
+    - name: Discovery actually finds tests
+      shell: bash
+      run: |
+        python - <<'PY'
+        import unittest
+        suite = unittest.defaultTestLoader.discover('tests', top_level_dir='.')
+        n = suite.countTestCases()
+        print('discovered', n, 'tests')
+        if n == 0:
+            raise SystemExit('discover collected no tests; a green suite would mean nothing')
+        PY
+
+    # README.md's command, run where the README says to run it: from the repo root.
+    # The tests `import fic`, and standing in the root is what puts fic.py on
+    # sys.path — nothing here names it explicitly.
+    - name: Suite, from the repository root
+      shell: bash
+      run: python -m unittest discover -s tests
+
+    # The other half of the pair that used to be "from the package directory" and
+    # "from the repository root". Those two cwds only differed while FIC was a
+    # subdirectory; at the root they would be one command under two names, so this
+    # step keeps the difference that mattered rather than the wording. It stands in
+    # an empty temporary directory, so cwd contributes nothing to sys.path and the
+    # only thing that can satisfy `import fic` is the explicit -t. It also loads the
+    # tests as `tests.test_fic` instead of top-level `test_fic`, which is the other
+    # thing -t changes.
+    #
+    # This is the suite's version of what the next-but-two step asserts about
+    # fic.py: neither is allowed to depend on where you were standing.
+    - name: Suite, from a directory that is not the checkout
+      shell: bash
+      env:
+        FIC_CHECKOUT: ${{ github.workspace }}
+      run: |
+        cd "$(mktemp -d)"
+        python -m unittest discover -s "$FIC_CHECKOUT/tests" -t "$FIC_CHECKOUT"
+
+    # The README's quickstart, verbatim. It claims a fresh clone works with no
+    # setup, because the repo ships target_folder/ and config.json points at it.
+    # Both now sit beside fic.py at the root, which is where a clone leaves you.
+    # This is what would catch that stopping being true.
+    - name: Quickstart works on a fresh clone
+      shell: bash
+      run: |
+        python fic.py init
+        python fic.py check
+        python fic.py status
+
+    # "Every relative path in config.json is resolved against the directory
+    # config.json lives in — not against whatever directory you ran the command
+    # from." Checked against the baseline the previous step wrote, from a different
+    # cwd: if resolution were cwd-relative this finds no baseline and exits 2.
+    #
+    # The different cwd is the entire check, and it no longer comes for free. While
+    # FIC was a subdirectory, `python file_integrity_checker/fic.py check` from the
+    # workspace root was already standing somewhere config.json was not. Rewritten
+    # as `python fic.py check` from the root it would be run *in* config.json's own
+    # directory, where a fully cwd-relative fic.py passes too — i.e. exactly the bug
+    # this exists to catch (d876f34, "Stop fic.py caring which directory you ran it
+    # from") would sail through green. So it runs from outside the checkout and
+    # calls fic.py by absolute path.
+    #
+    # `mktemp -d` rather than a fixed directory: it exists and is writable on the
+    # ubuntu, macOS and Windows runners and inside the container, it is outside
+    # ${{ github.workspace }} so the last step still sees a clean tree, and it is
+    # empty, so the two guards below cannot pass by accident. Nothing is written
+    # there anyway — fic.py writes baseline.json, baseline.sha256 and logs/ next to
+    # config.json, never next to the shell — so the cwd only has to exist.
+    - name: Paths resolve relative to config.json, not the shell
+      shell: bash
+      env:
+        FIC_CHECKOUT: ${{ github.workspace }}
+      run: |
+        cd "$(mktemp -d)"
+        # If either of these is ever here, the cwd is FIC's own directory again and
+        # the two commands below prove nothing. Fail loudly instead of vacuously.
+        test ! -e config.json
+        test ! -e fic.py
+        python "$FIC_CHECKOUT/fic.py" check
+        python "$FIC_CHECKOUT/fic.py" status
+
+    # Exit codes are the documented CI/CD contract (README "Exit Codes"), which
+    # makes them the part most likely to be depended on and least likely to be
+    # noticed when it regresses. 1 = drift found.
+    #
+    # The file is restored from a copy rather than with `git checkout --`, so this
+    # step needs no git and no assumption about how the checkout was done. The copy
+    # is removed again because the last step asserts the tree is clean.
+    - name: A modified file exits 1
+      shell: bash
+      run: |
+        cp target_folder/notes.txt notes.orig
+        printf 'appended by CI\n' >> target_folder/notes.txt
+        set +e
+        python fic.py check
+        code=$?
+        set -e
+        echo "exit=$code"
+        cp notes.orig target_folder/notes.txt
+        rm notes.orig
+        test "$code" = "1"
+
+    # 2 = the command could not run. Also covers the README's promise that init
+    # refuses to create a missing monitored folder rather than inventing it.
+    - name: A missing monitored folder exits 2 and creates nothing
+      shell: bash
+      run: |
+        set +e
+        python fic.py init --folder ./no-such-folder
+        code=$?
+        set -e
+        echo "exit=$code"
+        test "$code" = "2"
+        test ! -e ./no-such-folder
+
+    # Everything above leaves files behind — baseline.json, baseline.sha256,
+    # logs/, __pycache__/ — now at the repo root rather than one directory down.
+    # The .gitignore that claims to cover them is the root .gitignore, and every
+    # pattern it uses for them is unanchored (no leading or embedded slash), so it
+    # matches at the root exactly as it did when nested. If that ever stops being
+    # true, the next person to follow the README commits their own baseline over the
+    # repo's. This runs last for that reason.
+    #
+    # The two steps that run from outside the workspace write nothing into it beyond
+    # the same generated files, so they add nothing for this step to forgive.
+    - name: Generated files are all gitignored
+      shell: bash
+      run: |
+        git status --porcelain
+        test -z "$(git status --porcelain)"
