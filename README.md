@@ -2,6 +2,7 @@
 
 > **Lightweight, hash-based file integrity monitoring for Python.**
 
+[![CI](https://github.com/BU1lDR/my_projects/actions/workflows/file-integrity-checker.yml/badge.svg)](https://github.com/BU1lDR/my_projects/actions/workflows/file-integrity-checker.yml)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Security: SHA-256](https://img.shields.io/badge/Security-SHA--256-green.svg)](https://en.wikipedia.org/wiki/SHA-2)
@@ -283,6 +284,14 @@ python -m unittest discover -s file_integrity_checker/tests -t file_integrity_ch
 39 tests, no fixtures to set up; they build their own directories under `tempfile` and clean up
 after themselves, so the suite never touches your real baseline.
 
+**What CI covers.** Both commands above run on every push, on Linux, macOS and Windows, on Python
+3.8 through 3.14 — the two badges at the top of this file are claims, and this is what checks them.
+CI also runs the quickstart and the three commands end to end through a shell, because the tests
+`import fic` and call it in-process: they cannot catch a `python fic.py` that no longer starts, a
+path that resolves against the wrong directory, or a wrong exit code. Those three are asserted
+separately, since they are the documented interface. Nothing is installed in any of those jobs,
+which is how the standard-library-only claim is tested rather than just stated.
+
 ---
 
 ## 📁 Project Structure
@@ -296,6 +305,7 @@ my_projects/
     ├──  requirements.txt     # Standard library only — nothing to install
     ├──  README.md            # Project documentation
     │
+    ├──  target_folder/       # Sample tree the default config monitors, so a fresh clone works
     └──  tests/               # Unit testing modules
 ```
 
