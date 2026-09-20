@@ -295,8 +295,13 @@ The two differ only in what puts `fic.py` on `sys.path` — `python -m` in the f
 second. Drop the `-t` and discovery still finds the test files and then fails to import the module
 they test, which is exactly the kind of thing that works one way and not the other. CI runs both.
 
-48 tests, no fixtures to set up; they build their own directories under `tempfile` and clean up
-after themselves, so the suite never touches your real baseline.
+71 tests, no fixtures to set up; they build their own directories under `tempfile` and clean up
+after themselves, so the suite never touches your real baseline. Some of them are about
+`tools/check_test_count.py` rather than about `fic.py`: the guard that keeps this very number
+honest had nothing checking *it*, which is how a fix for its network handling came to be written
+twice and to land once. How many of them those are is deliberately not written here: it would be
+a second count, in a sentence the guard above checks only for the first, which is the problem
+this paragraph is about.
 
 **What CI covers.** Both commands run on every push to `main` and every pull request, on Linux,
 macOS and Windows, on Python 3.8 through 3.14 — the two badges at the top of this file are claims, and this is what checks them.

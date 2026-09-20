@@ -198,7 +198,13 @@ def fetch_description(slug: str) -> tuple[str | None, str | None]:
         if attempt:
             time.sleep(2)
         try:
-            response = urllib.request.urlopen(request, timeout=TIMEOUT)
+            # The body is read inside this `try`, not after it. It used to sit in
+            # the `else:` clause below, which the handlers do not cover — so the
+            # comment further down, promising a retry on a connection dropped
+            # mid-read, was describing a traceback. The failure it names is
+            # precisely the one that happens after urlopen has returned.
+            with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
+                payload = json.load(response)
         except urllib.error.HTTPError as exc:
             # First, because HTTPError is a URLError is an OSError: reversing these
             # two clauses would swallow every status code as a network failure.
@@ -219,13 +225,17 @@ def fetch_description(slug: str) -> tuple[str | None, str | None]:
             last = "could not reach the GitHub API for {}: {}".format(
                 slug, getattr(exc, "reason", exc) or exc.__class__.__name__
             )
+        except ValueError as exc:
+            # JSONDecodeError is a ValueError; so is what json.load raises on bytes
+            # that are not JSON at all. Not retried: a malformed body is an answer,
+            # and asking again gets the same one.
+            return None, "the GitHub API returned something that is not JSON: {}".format(exc)
         else:
-            try:
-                with response:
-                    return json.load(response).get("description") or "", None
-            except (json.JSONDecodeError, ValueError) as exc:
-                return None, "the GitHub API returned something that is not JSON: {}".format(exc)
-    return None, "{} (retried once)".format(last)
+            break
+    else:
+        return None, "{} (retried once)".format(last)
+
+    return payload.get("description") or "", None
 
 
 def check_readme(actual: int) -> bool:
