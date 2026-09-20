@@ -351,7 +351,7 @@ you end up with a second copy four lines below the copy it corrects.
 ```text
 file-integrity-checker/
 │
-├──  .github/             # CI workflow and the shared check set two of its three jobs run
+├──  .github/             # CI workflow, the shared check set two of its three jobs run, the profile blurb, and a ping to the profile README on push
 ├──  .gitignore           # Covers baseline.json, baseline.sha256, logs/, __pycache__/
 ├──  config.json          # Default configuration file
 ├──  fic.py               # Main CLI tool & core scanner engine
