@@ -2,7 +2,8 @@
 # and "Linux | macOS | Windows". Until this existed, the suite had only ever run on
 # one developer's Windows box on 3.14, so neither was tested.
 #
-# The two claims are checked by two jobs, because they need different things:
+# Those two claims are checked by the first two jobs below, because they need
+# different things; a third job checks a claim of a different kind entirely:
 #
 #   versions   Every Python from 3.8 to 3.14, from the official Docker images rather
 #              than setup-python. That is not a stylistic choice: setup-python has no
@@ -15,10 +16,17 @@
 #              setup-python is the only way to get an interpreter. This is the job
 #              that would catch a path or line-ending assumption.
 #
+#   counts     The test count quoted in README.md and in this repository's GitHub
+#              description. Neither is a badge and neither varies by interpreter or
+#              platform, so this is one job rather than a step in the matrix: the
+#              answer would be identical thirteen times over, and the description
+#              half of it is a call to the GitHub API, which is not worth making
+#              thirteen times to learn one thing.
+#
 # So the version floor is proven on Linux and the platform claim is proven on current
 # Pythons; neither job proves 3.8 on macOS, and the README does not say it does.
 #
-# Both jobs run the same checks, from .github/actions/fic-checks. Nothing is
+# The first two jobs run the same checks, from .github/actions/fic-checks. Nothing is
 # installed in either: requirements.txt says standard library only, and an empty
 # environment is the only thing that actually tests that.
 #
@@ -93,3 +101,33 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - uses: ./.github/actions/fic-checks
+
+  # Two places quote the size of the suite: README.md, and this repository's GitHub
+  # description. The fic-checks action already fails if discovery collects zero, which
+  # answers "is this number above zero" — it has never answered "is this number the one
+  # the documentation claims". Adding a test falsifies both copies at once, and adding a
+  # test is the most ordinary change this repo can receive.
+  #
+  # The sibling project is the argument: security-scanner's description said "353 tests"
+  # while its suite was at 396, having survived two increments that moved every other
+  # copy. A description cannot appear in a diff, so nothing was ever going to catch it.
+  counts:
+    name: documented counts
+    runs-on: ubuntu-latest
+    # The floor this repo claims, and the full image because actions/checkout needs git.
+    # The check does not care which interpreter runs it, so running it on the oldest
+    # supported one costs nothing and turns tools/check_test_count.py's "3.8 compatible"
+    # docstring from a claim into something this workflow proves.
+    container: python:3.8
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: The documented test count is the real one
+        env:
+          # Not for access — the description is public — but for the rate limit:
+          # unauthenticated calls are 60/hour shared across everything leaving this
+          # runner's IP, which fails for reasons unrelated to the claim. Scoped by the
+          # permissions block above, which is contents: read and grants nothing else.
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python tools/check_test_count.py

@@ -306,6 +306,13 @@ path that resolves against the wrong directory, or a wrong exit code. Those thre
 separately, since they are the documented interface. Nothing is installed in any of those jobs,
 which is how the standard-library-only claim is tested rather than just stated.
 
+A third job checks the suite's size where it is quoted. "48 tests" above, and "48 unittest cases" in this
+repository's GitHub description, are both claims about the suite that adding a single test
+falsifies — and the description is a copy no commit can touch, so no diff and no review was ever
+going to catch it drifting. `tools/check_test_count.py` compares both to what discovery actually
+finds. It runs on `python:3.8`, the floor the badge claims, so the script's own claim to work there
+is proven rather than stated.
+
 ---
 
 ## 📁 Project Structure
@@ -313,7 +320,7 @@ which is how the standard-library-only claim is tested rather than just stated.
 ```text
 file-integrity-checker/
 │
-├──  .github/             # CI workflow and the shared check set both of its jobs run
+├──  .github/             # CI workflow and the shared check set two of its three jobs run
 ├──  .gitignore           # Covers baseline.json, baseline.sha256, logs/, __pycache__/
 ├──  config.json          # Default configuration file
 ├──  fic.py               # Main CLI tool & core scanner engine
@@ -322,7 +329,8 @@ file-integrity-checker/
 ├──  LICENSE              # MIT
 │
 ├──  target_folder/       # Sample tree the default config monitors, so a fresh clone works
-└──  tests/               # Unit testing modules
+├──  tests/               # Unit testing modules
+└──  tools/               # Checks the test count quoted here and in the repo description
 ```
 
 ---
