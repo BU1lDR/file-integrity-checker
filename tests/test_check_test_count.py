@@ -213,19 +213,32 @@ class TestFetchDescriptionResponses(ToolCase):
 
             self.attempts.append(code)
 
+            # A body, not None -- and this argument is the whole reason this block
+            # has a comment. HTTPError reaches tempfile._TemporaryFileWrapper
+            # through addinfourl, and that wrapper's __del__ emits a
+            # ResourceWarning unless close() was called, so these are closed;
+            # warning noise in a CI log is how real warnings stop being read.
+            #
+            # But HTTPError.__init__ only runs the addinfourl chain `if fp is not
+            # None`, so with None the wrapper's attributes are never set and
+            # close() raises KeyError: 'file' out of tempfile -- on Python 3.8 and
+            # 3.9 only. 3.11+ fills in a .fp on demand and closes cleanly, which is
+            # every interpreter this was written and verified on. CI's container
+            # matrix is what caught it, at the floor this project's badge claims,
+            # and no amount of care locally could have: the fix and the bug look
+            # identical on a modern interpreter.
+            #
+            # Passing a body fixes it on every version and is the truer stub
+            # besides. A real 404 from urlopen arrives with one -- that is what
+            # exc.read() reads.
             error = urllib.error.HTTPError(
                 "https://api.github.com/repos/BU1lDR/x",
                 code,
                 "message",
                 {},
-                None
+                io.BytesIO(b'{"message": "Not Found"}')
             )
 
-            # HTTPError reaches _TemporaryFileWrapper through addinfourl, and its
-            # __del__ emits a ResourceWarning unless close() was called -- passing
-            # fp=None does not help, because .fp is created on demand. Closing them
-            # keeps the suite's output clean, and warning noise in a CI log is how
-            # real warnings stop being read.
             self.addCleanup(error.close)
 
             raise error
