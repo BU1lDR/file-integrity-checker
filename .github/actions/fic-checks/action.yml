@@ -31,9 +31,13 @@ runs:
       shell: bash
       run: git config --global --add safe.directory '*'
 
-    # `unittest discover` exits 0 when it collects nothing, so a renamed directory
-    # or a changed file pattern would turn the two suite steps green while testing
-    # zero lines of code. That failure mode is silent, so it gets its own check.
+    # On Python 3.11 and earlier `unittest discover` exits 0 when it collects
+    # nothing (3.12 made that exit 5 -- gh-62432), and 3.8 through 3.11 are in the
+    # matrix, so a renamed directory or a changed file pattern would turn those
+    # suite steps green while testing zero lines of code. That failure mode is
+    # silent, so it gets its own check, on every version rather than only the ones
+    # that need it -- a guard that runs on some cells and not others is one more
+    # thing to remember.
     #
     # tests/ is now directly under the checkout root, and the root is the top-level
     # directory. The hazard being guarded — directory name, file pattern — is the
