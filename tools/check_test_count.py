@@ -5,12 +5,15 @@ CI already proves discovery finds *something*: the fic-checks action fails if
 ``discover`` collects zero, because a renamed directory or a changed file pattern
 would otherwise turn both suite steps green while testing nothing. That guard
 answers "is this number greater than zero". It does not answer "is this number the
-one the documentation claims", and two places claim it:
+one the documentation claims", and two surfaces claim it:
 
-    README.md          "48 tests, no fixtures to set up"
-    GitHub description "48 unittest cases."
+    README.md          "N tests, no fixtures to set up"
+    GitHub description "N unittest cases."
 
-Both are correct as this is written. Neither was checked by anything, and the
+No digit is written down here on purpose. A file whose job is to stop the figure
+from being copied around should not be one of the copies.
+
+Both were correct as this was written. Neither was checked by anything, and the
 sibling project already ran this experiment for us: security-scanner's description
 said "353 tests" while its suite was at 396, having survived two increments that
 moved every other copy of the figure. It stayed wrong because a repository
@@ -22,10 +25,17 @@ both numbers at once. That is the whole argument for checking rather than
 remembering: a figure that goes stale every time the project improves is a figure
 nobody can maintain by intending to.
 
-Run from the repository root: ``python tools/check_test_count.py``. Both copies are
+Run from the repository root: ``python tools/check_test_count.py``. Every copy is
 checked on every run, so two stale numbers are one run's output rather than two
 round trips, and the exact ``gh repo edit`` command is printed for the one no
 commit can fix.
+
+Every copy, not the first one: README.md is scanned with ``finditer`` and each
+match has to agree. The first version of this file used ``search``, which was
+enough while the figure appeared once — and the same commit that added this file
+also added a paragraph to README.md explaining the check, quoting the figure a
+second time. That paragraph would have been the one stale copy this file could not
+see, four lines below the one it corrects.
 
 When the GitHub API cannot be reached this says so, in those words, rather than
 reporting agreement: "we found nothing" and "we could not look" must not produce
@@ -34,22 +44,26 @@ check that quietly skips itself in CI is a green tick over nothing. Run by hand 
 only reports, so a clone with no token still gets the README check instead of a
 wall.
 
-Python 3.8 compatible, deliberately. Nothing in CI needs it to be — this runs in
-one job on one current interpreter, not in the version matrix — but this repo's
-headline claim is 3.8+ and it installs nothing anywhere, so a tool here that
-quietly required 3.9 would be a trap for the next person who reaches for it. The
-accommodations are two: no str.removesuffix, and socket.timeout is caught
-alongside TimeoutError because before 3.10 they are unrelated classes and urllib
-raises the former.
+Python 3.8 compatible, deliberately — and the counts job runs it on python:3.8, so
+that is proven rather than stated. This repo's headline claim is 3.8+ and it
+installs nothing anywhere, so a tool here that quietly required 3.9 would be a
+trap for the next person who reaches for it. Two things to know before editing:
+str.removesuffix is 3.9+, and the ``X | None`` annotations below are only legal
+here because of the ``from __future__ import annotations`` on the next line, which
+makes annotations strings instead of expressions. That import is load-bearing, not
+decoration; deleting it, or letting a formatter move it below another statement,
+breaks 3.8 on import. It does not cover *runtime* uses of the same syntax
+(``isinstance(x, int | None)``, ``typing.get_type_hints``, a module-level
+``Result = tuple[int, str]``), so do not introduce those.
 """
 
 from __future__ import annotations
 
+import http.client
 import json
 import os
 import re
 import shlex
-import socket
 import subprocess
 import sys
 import time
@@ -65,12 +79,17 @@ TESTS = ROOT / "tests"
 API = "https://api.github.com/repos/{slug}"
 TIMEOUT = 15
 
-# The two copies word it differently, so they get a pattern each rather than one
+# The two surfaces word it differently, so they get a pattern each rather than one
 # pattern loose enough to match both. A regex that accepted "tests" or "cases"
 # anywhere would also match prose about test cases in general, and this file's
 # value depends entirely on it comparing the figure someone actually reads.
-README_QUOTED = re.compile(r"\b(\d+) tests\b")           # "48 tests, no fixtures ..."
-DESCRIPTION_QUOTED = re.compile(r"\b(\d+) unittest cases\b")  # "... 48 unittest cases."
+README_QUOTED = re.compile(r"\b(\d+) tests\b")                # "N tests, no fixtures ..."
+DESCRIPTION_QUOTED = re.compile(r"\b(\d+) unittest cases\b")  # "... N unittest cases."
+
+# README.md is checked against both, because the paragraph describing this check is
+# free to quote the description's wording as well as its own, and a copy the README
+# holds is a copy that can go stale whichever way it is phrased.
+README_PATTERNS = (README_QUOTED, DESCRIPTION_QUOTED)
 
 
 def discovered_count() -> int:
@@ -181,14 +200,24 @@ def fetch_description(slug: str) -> tuple[str | None, str | None]:
         try:
             response = urllib.request.urlopen(request, timeout=TIMEOUT)
         except urllib.error.HTTPError as exc:
+            # First, because HTTPError is a URLError is an OSError: reversing these
+            # two clauses would swallow every status code as a network failure.
             last = "HTTP {} from the GitHub API for {}".format(exc.code, slug)
             if exc.code < 500:
                 return None, last
-        except (urllib.error.URLError, socket.timeout, TimeoutError) as exc:
-            # socket.timeout only became an alias of TimeoutError in 3.10, and it
-            # is what urllib raises on a read timeout before then.
+        except (OSError, http.client.HTTPException) as exc:
+            # OSError rather than URLError, which is what this caught first and is
+            # too narrow to mean "the network failed". urlopen wraps what goes wrong
+            # before the response starts; once bytes are arriving it does not, so a
+            # connection dropped mid-read surfaces as ConnectionResetError or
+            # http.client.IncompleteRead and would have escaped both handlers as a
+            # traceback. OSError also settles a version difference rather than
+            # working around it: socket.timeout, which is what a read timeout raises
+            # before 3.10, is unrelated to TimeoutError there but has subclassed
+            # OSError since 3.3. HTTPException is the one family that is not an
+            # OSError at all.
             last = "could not reach the GitHub API for {}: {}".format(
-                slug, getattr(exc, "reason", exc)
+                slug, getattr(exc, "reason", exc) or exc.__class__.__name__
             )
         else:
             try:
@@ -200,22 +229,45 @@ def fetch_description(slug: str) -> tuple[str | None, str | None]:
 
 
 def check_readme(actual: int) -> bool:
+    """Compare every figure README.md quotes, not the first one.
+
+    finditer rather than search: the file is free to name the count more than once
+    — the paragraph explaining this check does — and a loop that stops at the first
+    match would correct one copy and certify the rest as fine in the same breath.
+    """
     text = README.read_text(encoding="utf-8")
-    quoted = README_QUOTED.search(text)
-    if quoted is None:
-        print("no 'N tests' figure found in README.md — did the wording change?")
+
+    quoted = []
+    for pattern in README_PATTERNS:
+        for match in pattern.finditer(text):
+            line_no = text[: match.start()].count("\n") + 1
+            quoted.append((line_no, int(match.group(1)), match.group(0)))
+    quoted.sort()
+
+    if not quoted:
+        print(
+            "no test-count figure found in README.md at all. Either the wording\n"
+            "changed, in which case fix the patterns in this file, or the sentence\n"
+            "was deleted — and this check now passes by not looking, which is worse\n"
+            "than the drift it exists to catch."
+        )
         return False
 
-    claimed = int(quoted.group(1))
-    if claimed == actual:
-        print("README.md says {} tests; discovery finds {}. Agreed.".format(claimed, actual))
+    stale = [item for item in quoted if item[1] != actual]
+    if not stale:
+        print(
+            "README.md quotes {} at {}; discovery finds {}. Agreed.".format(
+                "the count" if len(quoted) == 1 else "the count in {} places".format(len(quoted)),
+                ", ".join("line {}".format(line_no) for line_no, _, _ in quoted),
+                actual,
+            )
+        )
         return True
 
-    line_no = text[: quoted.start()].count("\n") + 1
-    print(
-        "README.md:{} claims {} tests; discovery finds {}.\n"
-        "Update that line.".format(line_no, claimed, actual)
-    )
+    print("discovery finds {} tests. README.md disagrees:".format(actual))
+    for line_no, claimed, phrase in stale:
+        print('  README.md:{} says "{}" ({})'.format(line_no, phrase, claimed))
+    print("Update {}.".format("that line" if len(stale) == 1 else "all of them"))
     return False
 
 

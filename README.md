@@ -306,12 +306,16 @@ path that resolves against the wrong directory, or a wrong exit code. Those thre
 separately, since they are the documented interface. Nothing is installed in any of those jobs,
 which is how the standard-library-only claim is tested rather than just stated.
 
-A third job checks the suite's size where it is quoted. "48 tests" above, and "48 unittest cases" in this
-repository's GitHub description, are both claims about the suite that adding a single test
+A third job checks the suite's size wherever it is quoted: the sentence above, and this
+repository's GitHub description. Both are claims about the suite that adding a single test
 falsifies — and the description is a copy no commit can touch, so no diff and no review was ever
 going to catch it drifting. `tools/check_test_count.py` compares both to what discovery actually
 finds. It runs on `python:3.8`, the floor the badge claims, so the script's own claim to work there
 is proven rather than stated.
+
+This paragraph quoted the number too, in its first version, and that is why the check reads *every*
+figure in this file rather than the first one. Explaining a guard beside the thing it guards is how
+you end up with a second copy four lines below the copy it corrects.
 
 ---
 
