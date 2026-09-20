@@ -187,6 +187,13 @@ Reports whether the monitored folder, the baseline, and its sidecar digest are p
 python fic.py status
 ```
 
+`status` exits `0` only when all three are present and the baseline matches its sidecar digest, and `2`
+otherwise — including when the baseline or the sidecar is *missing*, because then integrity was not
+verified rather than verified and fine. It names each problem it found on the way out, so the exit code
+and the report cannot disagree. It printed `Baseline integrity: FAILED` and exited `0` until this was
+fixed, which meant anything reading the documented contract instead of the text was told a tampered
+baseline was healthy.
+
 ---
 
 ## Example Output
@@ -234,10 +241,20 @@ Exclusions: 3
   - cache/logs
   - ignored_file.txt
 Baseline integrity: OK
+
+Status: OK
 ```
 
 The paths print in full so there is no doubt which folder is being watched — `status` run from two
-different directories should name the same one.
+different directories should name the same one. On a tree with something wrong, the last line reads
+`Status: PROBLEMS FOUND` and is followed by one line per problem:
+
+```text
+Baseline integrity: FAILED
+
+Status: PROBLEMS FOUND
+  - the baseline does not match its sidecar digest
+```
 
 ---
 
@@ -295,13 +312,18 @@ The two differ only in what puts `fic.py` on `sys.path` — `python -m` in the f
 second. Drop the `-t` and discovery still finds the test files and then fails to import the module
 they test, which is exactly the kind of thing that works one way and not the other. CI runs both.
 
-71 tests, no fixtures to set up; they build their own directories under `tempfile` and clean up
+78 tests, no fixtures to set up; they build their own directories under `tempfile` and clean up
 after themselves, so the suite never touches your real baseline. Some of them are about
 `tools/check_test_count.py` rather than about `fic.py`: the guard that keeps this very number
 honest had nothing checking *it*, which is how a fix for its network handling came to be written
 twice and to land once. How many of them those are is deliberately not written here: it would be
 a second count, in a sentence the guard above checks only for the first, which is the problem
 this paragraph is about.
+
+The `status` ones were added the same way and for the same reason. That command had no tests at all,
+and CI only ever ran it immediately after `init` — on a tree that was healthy, under `set -e`, where a
+correct `0` and an unconditional `0` look identical. Each one now asserts the exit code against the
+lines printed beside it, because a status report whose text and exit code disagree is the defect.
 
 **What CI covers.** Both commands run on every push to `main` and every pull request, on Linux,
 macOS and Windows, on Python 3.8 through 3.14 — the two badges at the top of this file are claims, and this is what checks them.

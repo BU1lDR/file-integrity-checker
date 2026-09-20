@@ -154,6 +154,30 @@ runs:
         test "$code" = "2"
         test ! -e ./no-such-folder
 
+    # The other half of the exit-code contract for `status`, which the two steps
+    # above only ever ask about a healthy tree — and both run it under `set -e`,
+    # where a correct 0 and an unconditional 0 are the same green tick. That is
+    # precisely how `status` came to print "Baseline integrity: FAILED" and exit 0.
+    # The suite covers this in process now; this covers it through the CLI, for the
+    # same reason every other exit code is asserted here: the documented contract is
+    # about `python fic.py`, not about a function call.
+    #
+    # The baseline is restored from a copy rather than regenerated, so the step
+    # leaves the tree exactly as it found it for the last check below.
+    - name: A tampered baseline makes status exit 2
+      shell: bash
+      run: |
+        cp baseline.json baseline.orig
+        printf ' ' >> baseline.json
+        set +e
+        python fic.py status
+        code=$?
+        set -e
+        echo "exit=$code"
+        cp baseline.orig baseline.json
+        rm baseline.orig
+        test "$code" = "2"
+
     # Everything above leaves files behind — baseline.json, baseline.sha256,
     # logs/, __pycache__/ — now at the repo root rather than one directory down.
     # The .gitignore that claims to cover them is the root .gitignore, and every

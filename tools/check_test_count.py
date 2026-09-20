@@ -176,6 +176,15 @@ def fetch_description(slug: str) -> tuple[str | None, str | None]:
     The token is not for access — the description is public — but for the rate
     limit. Unauthenticated calls get 60/hour shared across everything leaving that
     runner's IP, which fails for reasons that have nothing to do with the claim.
+
+    It also decides how fresh the answer is, which is worth knowing before
+    disbelieving one. Without a token the response carries
+    ``cache-control: public, max-age=60``, so a run in the minute after a successful
+    ``gh repo edit`` can still report the old description — the edit landed and this
+    is reading an edge copy of it. With a token the response is private and
+    uncached, which is the case in CI (the workflow passes ``github.token``), so the
+    check is never asserting against a stale page there. By hand: re-run after a
+    minute, or export GITHUB_TOKEN, before concluding the edit failed.
     """
     request = urllib.request.Request(
         API.format(slug=slug),

@@ -1875,6 +1875,23 @@ def check_integrity(monitored_folder, baseline_path, exclusions):
 
 def show_status(monitored_folder, baseline_path):
 
+    # Every line below is a report, and the exit code has to agree with them.
+    # This used to end in an unconditional `return EXIT_SUCCESS`, so `status`
+    # printed "Baseline integrity: FAILED" and exited 0 -- the one command whose
+    # entire job is reporting baseline integrity never emitted the code the
+    # README's table reserves for baseline tampering, and a cron job wired to the
+    # documented contract read success. `check` exits 2 on the same tree.
+    #
+    # "unavailable" counts as a problem too, and that is the less obvious half. A
+    # missing baseline or a missing sidecar means integrity was not verified,
+    # which is not the same as verified-and-fine; exiting 0 there would make "we
+    # could not look" indistinguishable from "there is nothing wrong". `check`
+    # already exits 2 on a missing baseline, so this agrees with its sibling as
+    # well as with the table, and no new exit code is needed: 2 is documented as
+    # "invalid configuration, missing files, or baseline tampering", which is
+    # exactly the set collected here.
+    problems = []
+
     baseline_hash_path = (
         get_baseline_hash_path(baseline_path)
     )
@@ -1898,6 +1915,10 @@ def show_status(monitored_folder, baseline_path):
             f"({monitored_folder})"
         )
 
+        problems.append(
+            "the monitored folder does not exist"
+        )
+
     # --------------------------------------------------
     # Baseline
     # --------------------------------------------------
@@ -1914,6 +1935,10 @@ def show_status(monitored_folder, baseline_path):
             f"({baseline_path})"
         )
 
+        problems.append(
+            "there is no baseline to check against"
+        )
+
     # --------------------------------------------------
     # Baseline hash
     # --------------------------------------------------
@@ -1928,6 +1953,11 @@ def show_status(monitored_folder, baseline_path):
         print(
             f"Baseline hash: MISSING "
             f"({baseline_hash_path})"
+        )
+
+        problems.append(
+            "the baseline's sidecar digest is missing, so "
+            "integrity cannot be verified"
         )
 
     # --------------------------------------------------
@@ -1956,9 +1986,18 @@ def show_status(monitored_folder, baseline_path):
                 )
 
         else:
+            # The baseline is there and could not be read: invalid JSON, or the
+            # wrong shape. Tracked separately from the sidecar check because a
+            # baseline can be unreadable while its digest still matches -- corrupt
+            # the file and recompute the sidecar over the corruption and integrity
+            # verifies fine over something nothing can load.
             print(
                 "Baseline files: "
                 "unavailable"
+            )
+
+            problems.append(
+                "the baseline exists but could not be read"
             )
 
     else:
@@ -1979,11 +2018,31 @@ def show_status(monitored_folder, baseline_path):
         else:
             print("Baseline integrity: FAILED")
 
+            problems.append(
+                "the baseline does not match its "
+                "sidecar digest"
+            )
+
     else:
         print(
             "Baseline integrity: "
             "unavailable"
         )
+
+    # Named, not just counted. A reader who has the output already knows which
+    # lines say MISSING; a reader who has only the exit code has nothing, and the
+    # point of the code is to be read by something that never sees the rest.
+    if problems:
+        print()
+        print("Status: PROBLEMS FOUND")
+
+        for problem in problems:
+            print(f"  - {problem}")
+
+        return EXIT_ERROR
+
+    print()
+    print("Status: OK")
 
     return EXIT_SUCCESS
 

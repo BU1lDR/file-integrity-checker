@@ -1,4 +1,6 @@
+import contextlib
 import hashlib
+import io
 import tempfile
 import unittest
 import json
@@ -2679,6 +2681,371 @@ class TestCheckIntegrityExclusionValidation(unittest.TestCase):
                 result,
                 fic.EXIT_ERROR
             )
+
+
+# --------------------------------------------------
+# Test show_status()
+#
+# `status` had no tests at all, which is how it came to print "Baseline
+# integrity: FAILED" and exit 0 for as long as it did. The command's whole job is
+# reporting on the baseline, and the exit code is the only part of its report that
+# anything automated reads. The action that runs it in CI ran it twice, both times
+# after `init`, so it was only ever asked about a tree that was fine -- and under
+# `set -e` a healthy 0 is indistinguishable from an unconditional one.
+#
+# So these assert the exit code against the printed lines in each state, rather
+# than asserting the lines alone. A disagreement between the two is the defect.
+# --------------------------------------------------
+
+class TestShowStatus(unittest.TestCase):
+
+    @contextlib.contextmanager
+    def tree(self, exclusions=()):
+        """A healthy initialised tree: monitored folder, baseline, sidecar.
+
+        Built by calling initialize() rather than by writing the three files by
+        hand, so the sidecar holds the digest fic itself computes. A hand-rolled
+        one would only prove that this file and its author agree about the format.
+        """
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+
+            root = Path(temp_dir)
+
+            monitored_folder = root / "data"
+
+            baseline_path = (
+                root / "baseline" / "baseline.json"
+            )
+
+            monitored_folder.mkdir()
+
+            (monitored_folder / "important.txt").write_text(
+                "Important data",
+                encoding="utf-8"
+            )
+
+            with contextlib.redirect_stdout(io.StringIO()):
+
+                initialize_result = fic.initialize(
+                    monitored_folder,
+                    baseline_path,
+                    list(exclusions)
+                )
+
+            self.assertEqual(
+                initialize_result,
+                fic.EXIT_SUCCESS
+            )
+
+            yield monitored_folder, baseline_path
+
+    def status(self, monitored_folder, baseline_path):
+
+        output = io.StringIO()
+
+        with contextlib.redirect_stdout(output):
+
+            result = fic.show_status(
+                monitored_folder,
+                baseline_path
+            )
+
+        return result, output.getvalue()
+
+    def test_a_healthy_tree_is_ok_and_exits_zero(self):
+
+        # The case CI was already covering, kept because everything below changes
+        # the exit code and something has to pin the value it changes it from. The
+        # fic-checks action runs `status` after `init` under `set -e`, so a
+        # regression here fails that job rather than this test alone.
+        with self.tree(exclusions=["temp"]) as (monitored_folder, baseline_path):
+
+            result, output = self.status(
+                monitored_folder,
+                baseline_path
+            )
+
+        self.assertEqual(
+            result,
+            fic.EXIT_SUCCESS
+        )
+
+        self.assertIn(
+            "Baseline integrity: OK",
+            output
+        )
+
+        self.assertIn(
+            "Status: OK",
+            output
+        )
+
+        self.assertNotIn(
+            "PROBLEMS FOUND",
+            output
+        )
+
+    def test_a_tampered_baseline_exits_error_rather_than_success(self):
+
+        # The bug itself. A recorded digest is changed and the sidecar is left
+        # alone, which is exactly what the sidecar exists to catch -- and `status`
+        # caught it, said so on stdout, and returned EXIT_SUCCESS. Anything reading
+        # the documented contract instead of the text was told the tree was fine.
+        with self.tree() as (monitored_folder, baseline_path):
+
+            baseline_data = json.loads(
+                baseline_path.read_text(encoding="utf-8")
+            )
+
+            baseline_data["files"] = {
+                name: "0" * 64
+                for name in baseline_data["files"]
+            }
+
+            baseline_path.write_text(
+                json.dumps(baseline_data, indent=4),
+                encoding="utf-8"
+            )
+
+            result, output = self.status(
+                monitored_folder,
+                baseline_path
+            )
+
+        self.assertEqual(
+            result,
+            fic.EXIT_ERROR
+        )
+
+        self.assertIn(
+            "Baseline integrity: FAILED",
+            output
+        )
+
+        self.assertIn(
+            "does not match its sidecar digest",
+            output
+        )
+
+        # Still loadable, so the exit code came from the integrity check and not
+        # from the unreadable-baseline branch further up. Two problems both exiting
+        # 2 would make this test pass while testing the wrong one.
+        self.assertNotIn(
+            "could not be read",
+            output
+        )
+
+    def test_a_missing_sidecar_is_a_problem_rather_than_a_pass(self):
+
+        # "unavailable" is not "fine". Deleting the sidecar removes the ability to
+        # verify, and an exit code that said 0 here would make "we could not look"
+        # and "we looked and found nothing" the same answer.
+        with self.tree() as (monitored_folder, baseline_path):
+
+            fic.get_baseline_hash_path(
+                baseline_path
+            ).unlink()
+
+            result, output = self.status(
+                monitored_folder,
+                baseline_path
+            )
+
+        self.assertEqual(
+            result,
+            fic.EXIT_ERROR
+        )
+
+        self.assertIn(
+            "Baseline hash: MISSING",
+            output
+        )
+
+        self.assertIn(
+            "Baseline integrity: unavailable",
+            output
+        )
+
+        self.assertIn(
+            "integrity cannot be verified",
+            output
+        )
+
+    def test_an_unverifiable_state_exits_what_check_exits(self):
+
+        # Asserted against `check` rather than against a literal, because the
+        # argument for 2 was that it is what the sibling command already returns on
+        # the same tree. If `check` ever moves, this fails and the pair is looked at
+        # together instead of drifting apart quietly.
+        with self.tree() as (monitored_folder, baseline_path):
+
+            baseline_path.unlink()
+
+            fic.get_baseline_hash_path(
+                baseline_path
+            ).unlink()
+
+            status_result, output = self.status(
+                monitored_folder,
+                baseline_path
+            )
+
+            with contextlib.redirect_stdout(io.StringIO()):
+
+                check_result = fic.check_integrity(
+                    monitored_folder,
+                    baseline_path,
+                    []
+                )
+
+        self.assertEqual(
+            status_result,
+            check_result
+        )
+
+        self.assertEqual(
+            status_result,
+            fic.EXIT_ERROR
+        )
+
+        self.assertIn(
+            "there is no baseline to check against",
+            output
+        )
+
+    def test_a_missing_monitored_folder_is_a_problem_while_integrity_is_fine(self):
+
+        # The state that separates "the baseline is intact" from "the system is
+        # healthy". Every baseline line here is OK, integrity verifies, and the
+        # thing being watched is gone -- so a status derived from the integrity
+        # check alone would report success over a folder that no longer exists.
+        with self.tree() as (monitored_folder, baseline_path):
+
+            (monitored_folder / "important.txt").unlink()
+
+            monitored_folder.rmdir()
+
+            result, output = self.status(
+                monitored_folder,
+                baseline_path
+            )
+
+        self.assertEqual(
+            result,
+            fic.EXIT_ERROR
+        )
+
+        self.assertIn(
+            "Monitored folder: MISSING",
+            output
+        )
+
+        self.assertIn(
+            "Baseline integrity: OK",
+            output
+        )
+
+        self.assertIn(
+            "the monitored folder does not exist",
+            output
+        )
+
+    def test_an_unreadable_baseline_with_a_matching_digest_is_still_a_problem(self):
+
+        # Why the unreadable baseline is tracked separately from the sidecar check
+        # rather than folded into it: the two can disagree. The file is overwritten
+        # with something that is not JSON and the sidecar is recomputed *over the
+        # corruption*, so integrity verifies perfectly against a baseline nothing
+        # can load. Deriving the exit code from the integrity line would print
+        # "unavailable" for the file count and exit 0 in the same breath.
+        with self.tree() as (monitored_folder, baseline_path):
+
+            baseline_path.write_text(
+                "this is not json at all\n",
+                encoding="utf-8"
+            )
+
+            with contextlib.redirect_stdout(io.StringIO()):
+
+                fic.save_baseline_hash(
+                    baseline_path
+                )
+
+            self.assertTrue(
+                fic.verify_baseline_hash(baseline_path)
+            )
+
+            result, output = self.status(
+                monitored_folder,
+                baseline_path
+            )
+
+        self.assertEqual(
+            result,
+            fic.EXIT_ERROR
+        )
+
+        self.assertIn(
+            "Baseline files: unavailable",
+            output
+        )
+
+        self.assertIn(
+            "Baseline integrity: OK",
+            output
+        )
+
+        self.assertIn(
+            "the baseline exists but could not be read",
+            output
+        )
+
+    def test_every_problem_is_named_and_not_merely_counted(self):
+
+        # A reader holding the output can already see which lines say MISSING. This
+        # is for the reader holding only the exit code, which is the one the code
+        # exists for -- so each problem is listed by name, and all of them are,
+        # rather than the first one found short-circuiting the rest.
+        with self.tree() as (monitored_folder, baseline_path):
+
+            (monitored_folder / "important.txt").unlink()
+
+            monitored_folder.rmdir()
+
+            baseline_path.unlink()
+
+            fic.get_baseline_hash_path(
+                baseline_path
+            ).unlink()
+
+            result, output = self.status(
+                monitored_folder,
+                baseline_path
+            )
+
+        self.assertEqual(
+            result,
+            fic.EXIT_ERROR
+        )
+
+        self.assertIn(
+            "Status: PROBLEMS FOUND",
+            output
+        )
+
+        for problem in (
+            "the monitored folder does not exist",
+            "there is no baseline to check against",
+            "the baseline's sidecar digest is missing",
+        ):
+
+            with self.subTest(problem=problem):
+
+                self.assertIn(
+                    problem,
+                    output
+                )
 
 
 # --------------------------------------------------
